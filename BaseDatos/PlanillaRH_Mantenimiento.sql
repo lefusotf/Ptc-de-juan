@@ -2,7 +2,7 @@
 -- PlanillaRH - Pruebas de mantenimiento a nivel de base de datos
 -- Demuestra mostrar, insertar, actualizar y eliminar registros, el uso de las vistas,
 -- de los procedimientos almacenados y de los triggers.
--- Ejecutar DESPUÉS de PlanillaRH.sql (cada bloque es independiente).
+-- Ejecutar DESPUÉS de PlanillaRH.sql o de PlanillaRH_Prueba.sql (cada bloque es independiente).
 -- =====================================================================
 USE PlanillaRH;
 GO
