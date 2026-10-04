@@ -51,7 +51,7 @@ namespace Vista.Configuracion
             txtDireccion = Ui.Caja("txtDireccion", 18, 186, 430, 250, ModoEntrada.Libre);
             txtTelefono = new CajaTexto { Name = "txtTelefono", Location = new Point(18, 246), Size = new Size(205, 28), Mascara = "####-####", MaxLength = 9 };
             txtCorreoEmpresa = Ui.Caja("txtCorreoEmpresa", 243, 246, 205, 100, ModoEntrada.Correo);
-            picLogo = new PictureBox { Name = "picLogo", Location = new Point(18, 322), Size = new Size(120, 120), BorderStyle = BorderStyle.FixedSingle, SizeMode = PictureBoxSizeMode.Zoom, BackColor = Color.FromArgb(248, 247, 254) };
+            picLogo = new PictureBox { Name = "picLogo", Location = new Point(18, 322), Size = new Size(120, 120), BorderStyle = BorderStyle.FixedSingle, SizeMode = PictureBoxSizeMode.Zoom, BackColor = Color.FromArgb(248, 249, 251) };
             btnLogo = Ui.Boton("btnLogo", "Elegir logotipo", Tema.PrimarioOscuro, 150, 340, 160, 34);
             btnQuitarLogo = Ui.Boton("btnQuitarLogo", "Quitar", Tema.Neutro, 320, 340, 100, 34);
             Label ayudaLogo = Ui.Etiqueta("Imagen PNG o JPG de hasta 1 MB. Es opcional.", 150, 384, 300, false, "lblAyudaLogo");

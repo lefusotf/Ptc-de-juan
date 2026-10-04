@@ -112,7 +112,7 @@ namespace Vista.Dashboard
                 if (g.Opciones.Count == 0) continue;
 
                 BotonMenu enc = new BotonMenu { Text = g.Nombre, Icono = "▾", Height = 30, Font = new System.Drawing.Font("Segoe UI", 8F, System.Drawing.FontStyle.Bold), Margin = new Padding(0, 6, 0, 0), Name = "grp" + g.Nombre };
-                enc.ColorTexto = System.Drawing.Color.FromArgb(150, 140, 215);
+                enc.ColorTexto = System.Drawing.Color.FromArgb(156, 163, 175);
                 Grupo grupo = g;
                 enc.Click += (s, e) => AlternarGrupo(grupo);
                 tip.SetToolTip(enc, "Muestra u oculta las opciones de " + g.Nombre.ToLower() + ".");

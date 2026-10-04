@@ -16,7 +16,7 @@ namespace Vista.Comun
             SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint |
                      ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
             ColorInicio = Tema.Primario;
-            ColorFin = Color.FromArgb(23, 18, 56);
+            ColorFin = Color.FromArgb(17, 24, 39);
             Angulo = 120f;
         }
 

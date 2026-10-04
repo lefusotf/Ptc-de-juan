@@ -6,17 +6,17 @@ namespace Vista.Comun
     /// <summary>Paleta de colores y utilidades de dibujo compartidas por todos los controles del sistema.</summary>
     public static class Tema
     {
-        public static readonly Color Primario = Color.FromArgb(91, 63, 224);
-        public static readonly Color PrimarioOscuro = Color.FromArgb(61, 38, 163);
-        public static readonly Color Acento = Color.FromArgb(255, 176, 59);
-        public static readonly Color Fondo = Color.FromArgb(244, 243, 252);
-        public static readonly Color Texto = Color.FromArgb(30, 27, 60);
-        public static readonly Color TextoSuave = Color.FromArgb(110, 108, 145);
-        public static readonly Color Peligro = Color.FromArgb(225, 29, 72);
-        public static readonly Color Neutro = Color.FromArgb(100, 106, 140);
-        public static readonly Color Borde = Color.FromArgb(226, 224, 242);
-        public static readonly Color Lateral = Color.FromArgb(23, 18, 56);
-        public static readonly Color LateralHover = Color.FromArgb(44, 36, 96);
+        public static readonly Color Primario = Color.FromArgb(31, 78, 140);
+        public static readonly Color PrimarioOscuro = Color.FromArgb(20, 48, 92);
+        public static readonly Color Acento = Color.FromArgb(201, 162, 75);
+        public static readonly Color Fondo = Color.FromArgb(243, 244, 246);
+        public static readonly Color Texto = Color.FromArgb(31, 41, 51);
+        public static readonly Color TextoSuave = Color.FromArgb(107, 114, 128);
+        public static readonly Color Peligro = Color.FromArgb(185, 28, 28);
+        public static readonly Color Neutro = Color.FromArgb(91, 99, 112);
+        public static readonly Color Borde = Color.FromArgb(229, 231, 235);
+        public static readonly Color Lateral = Color.FromArgb(17, 24, 39);
+        public static readonly Color LateralHover = Color.FromArgb(31, 41, 55);
 
         /// <summary>Rectángulo con esquinas redondeadas.</summary>
         public static GraphicsPath Redondeado(Rectangle r, int radio)

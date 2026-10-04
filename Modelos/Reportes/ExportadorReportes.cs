@@ -20,8 +20,8 @@ namespace Modelos.Reportes
     /// <summary>Exporta cualquier reporte a PDF (tabla paginada con encabezado y pie) o a Excel (.xlsx).</summary>
     public static class ExportadorReportes
     {
-        private static readonly double[] Verde = { 0.357, 0.247, 0.878 };
-        private static readonly double[] Gris = { 0.973, 0.969, 0.996 };
+        private static readonly double[] Verde = { 0.122, 0.306, 0.549 };
+        private static readonly double[] Gris = { 0.973, 0.976, 0.984 };
 
         public static string Formato(object v)
         {

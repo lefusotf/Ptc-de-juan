@@ -9,8 +9,8 @@ namespace Modelos.Reportes
     /// <summary>Genera las boletas de pago (una por página) a partir de filas de la vista vwPlanillaDetalle.</summary>
     public static class BoletaPdf
     {
-        private static readonly double[] Verde = { 0.357, 0.247, 0.878 };
-        private static readonly double[] Gris = { 0.973, 0.969, 0.996 };
+        private static readonly double[] Verde = { 0.122, 0.306, 0.549 };
+        private static readonly double[] Gris = { 0.973, 0.976, 0.984 };
         private static readonly double[] Suave = { 0.4, 0.4, 0.4 };
         private static readonly string[] Meses = { "", "enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre" };
 
@@ -37,8 +37,8 @@ namespace Modelos.Reportes
             p.Rectangulo(0, 0, p.Ancho, 78, Verde);
             p.Texto(m, 38, e.NombreEmpresa, 17, true, new[] { 1.0, 1, 1 });
             string datos = (string.IsNullOrEmpty(e.Nit) ? "" : "NIT " + e.Nit + "   ") + (string.IsNullOrEmpty(e.Nrc) ? "" : "NRC " + e.Nrc);
-            p.Texto(m, 54, datos, 8.5, false, new[] { 0.88, 0.85, 0.98 });
-            p.Texto(m, 66, e.Direccion ?? "", 8.5, false, new[] { 0.88, 0.85, 0.98 });
+            p.Texto(m, 54, datos, 8.5, false, new[] { 0.85, 0.90, 0.96 });
+            p.Texto(m, 66, e.Direccion ?? "", 8.5, false, new[] { 0.85, 0.90, 0.96 });
             p.TextoDerecha(p.Ancho - m, 38, "BOLETA DE PAGO", 14, true, new[] { 1.0, 1, 1 });
             p.TextoDerecha(p.Ancho - m, 54, Periodo((int)(short)d["anio"], (int)(byte)d["mes"]), 10, false, new[] { 1.0, 1, 1 });
 
