@@ -941,8 +941,8 @@ GO
 --   rrhh  / Rrhh123*  (Recursos Humanos)      respuesta de seguridad: azul
 --   conta / Conta123* (Contador)              respuesta de seguridad: sansalvador
 INSERT INTO usuario (idEmpleado, nombreUsuario, nombreCompleto, contrasena, correo, idRol, preguntaSeguridad, respuestaSeguridad, estado) VALUES
-(4, 'rrhh', 'Roberto Antonio Chávez Martínez', '$2a$11$saBofQJx95.w49jt6uADJuJkaYKuvbH7E0S1ZElPhIMlJfoenvTfa', 'roberto.chavez@empresa.com.sv', 2, '¿Cuál es su color favorito?', '$2a$11$29jEX/kGel5FM1Uht7YIA.Lssfr5lmmJ5aNJaoGXKxaVXHMqO/xiC', 'Activo'),
-(7, 'conta', 'Sofía Alejandra Quintanilla Mejía', '$2a$11$DUwLQbYprQyknFLdY7NOB.5vgULMUP6JSQ66fg7.ewYfrtHlVDTL.', 'sofia.quintanilla@empresa.com.sv', 3, '¿En qué ciudad nació?', '$2a$11$Kx7.gOAVOF1RTfUrdGuEQ.p9mwD7kqaGQiIsa/UTj7N5MLcql3Ywq', 'Activo');
+(4, 'rrhh', 'Roberto Antonio Chávez Martínez', '$2a$11$JmBeJIdePJ/tP418M9ny0.80LHQT9owQhqg9egsfe99S1s/lxMMZ2', 'roberto.chavez@empresa.com.sv', 2, '¿Cuál es su color favorito?', '$2a$11$bDbP22vJsZ3HkV3drabUuevYOalko4mGbjdBpY1dwgRrGekIg9Uv6', 'Activo'),
+(7, 'conta', 'Sofía Alejandra Quintanilla Mejía', '$2a$11$wydrRWNfeczPeEfV/1hT.e5UGUQiFWzXCnuyTP13GrZSRAarkwRRm', 'sofia.quintanilla@empresa.com.sv', 3, '¿En qué ciudad nació?', '$2a$11$W02rOZuxtUlTGZKlwEjRDOlMkCPhTb5JUb/wxKdX2m3w3qMC2AX0W', 'Activo');
 GO
 
 -- Asistencia de demostración: lunes a viernes desde hace dos meses hasta ayer
@@ -1069,5 +1069,146 @@ INSERT INTO prestamo (idEmpleado, monto, cuotaMensual, saldo, fechaOtorgado, des
 (18, 700.00, 60.00, 480.00, DATEADD(DAY, -35, DATEADD(MONTH, -2, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))), 'Préstamo personal'),
 (19, 500.00, 40.00, 380.00, DATEADD(DAY, -15, DATEADD(MONTH, -2, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))), 'Préstamo por emergencia'),
 (1, 3000.00, 250.00, 1750.00, DATEADD(DAY, -180, DATEADD(MONTH, -2, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))), 'Préstamo para vehículo');
+
+-- ---------- Datos de demostración adicionales (mínimo 15 registros por tabla) ----------
+INSERT INTO departamento (nombre, descripcion) VALUES
+('Legal', 'Asesoría jurídica y contratos'),
+('Auditoría Interna', 'Control interno y cumplimiento'),
+('Compras', 'Adquisiciones y proveedores'),
+('Mantenimiento', 'Mantenimiento de instalaciones y equipo'),
+('Seguridad Industrial', 'Prevención de riesgos y salud ocupacional'),
+('Control de Calidad', 'Aseguramiento y control de calidad'),
+('Capacitación', 'Formación y desarrollo del personal');
+INSERT INTO cargo (idDepartamento, nombre, salarioMinimo, salarioMaximo) VALUES
+(9, 'Asesor Legal', 1200.00, 2400.00),
+(10, 'Auditor Interno', 1000.00, 2000.00),
+(11, 'Encargado de Compras', 700.00, 1400.00),
+(12, 'Técnico Electricista', 450.00, 900.00),
+(13, 'Oficial de Seguridad', 500.00, 1000.00),
+(14, 'Inspector de Calidad', 550.00, 1100.00),
+(15, 'Instructor de Capacitación', 600.00, 1200.00);
+INSERT INTO horario (nombre, horaEntrada, horaSalida, minutosTolerancia, horasAlmuerzo) VALUES
+('Turno nocturno', '19:00', '23:30', 10, 0.50),
+('Fin de semana', '08:00', '14:00', 10, 0.00),
+('Seguridad matutino', '06:00', '14:00', 10, 0.50),
+('Seguridad vespertino', '14:00', '22:00', 10, 0.50),
+('Atención al cliente', '09:00', '18:00', 10, 1.00),
+('Taller', '07:30', '16:30', 10, 1.00),
+('Corrido sin almuerzo', '08:00', '16:00', 10, 0.00),
+('Medio tiempo tarde', '13:00', '18:00', 10, 0.00),
+('Flexible administrativo', '09:00', '18:00', 15, 1.00);
+INSERT INTO planilla (nombre, descripcion) VALUES
+('Planilla Gerencial', 'Cargos de dirección y gerencia'),
+('Planilla de Seguridad', 'Personal de seguridad y vigilancia'),
+('Planilla de Mantenimiento', 'Personal técnico de mantenimiento'),
+('Planilla de Calidad', 'Control y aseguramiento de calidad'),
+('Planilla Temporal', 'Personal contratado por período definido'),
+('Planilla de Pasantes', 'Practicantes y pasantes'),
+('Planilla de Proyectos', 'Personal asignado a proyectos'),
+('Planilla de Bodega', 'Personal de bodega y despacho'),
+('Planilla de Transporte', 'Motoristas y personal de transporte'),
+('Planilla de Capacitación', 'Instructores y formadores'),
+('Planilla de Compras', 'Personal de compras y proveedores'),
+('Planilla Legal', 'Personal del área legal');
+INSERT INTO rol (nombre, descripcion) VALUES
+('Gerente', 'Consulta general y reportes'),
+('Jefe de Recursos Humanos', 'Gestión completa del personal'),
+('Auxiliar Contable', 'Apoyo en planilla y movimientos'),
+('Supervisor', 'Consulta de personal y asistencia'),
+('Consulta', 'Solo consulta de empleados'),
+('Auditor', 'Consulta de planilla, reportes y bitácora'),
+('Planillero', 'Genera planillas y boletas'),
+('Recepcionista', 'Registro de asistencia'),
+('Analista de Personal', 'Empleados y acciones de personal'),
+('Secretaria', 'Permisos y asistencia'),
+('Coordinador', 'Asistencia y permisos del equipo'),
+('Soporte', 'Consulta de bitácora y usuarios');
+INSERT INTO rolPermiso (idRol, idPermisoSistema) SELECT 4, idPermisoSistema FROM permisoSistema WHERE codigo IN ('EMPLEADOS_VER', 'REPORTES_VER', 'PLANILLA_VER');
+INSERT INTO rolPermiso (idRol, idPermisoSistema) SELECT 5, idPermisoSistema FROM permisoSistema WHERE codigo IN ('DEPARTAMENTOS_VER', 'DEPARTAMENTOS_GESTIONAR', 'HORARIOS_VER', 'HORARIOS_GESTIONAR', 'EMPLEADOS_VER', 'EMPLEADOS_GESTIONAR', 'ASISTENCIA_VER', 'ASISTENCIA_GESTIONAR', 'PERMISOS_VER', 'PERMISOS_GESTIONAR', 'ACCIONES_VER', 'ACCIONES_GESTIONAR', 'REPORTES_VER');
+INSERT INTO rolPermiso (idRol, idPermisoSistema) SELECT 6, idPermisoSistema FROM permisoSistema WHERE codigo IN ('EMPLEADOS_VER', 'PLANILLA_VER', 'PLANILLA_GESTIONAR');
+INSERT INTO rolPermiso (idRol, idPermisoSistema) SELECT 7, idPermisoSistema FROM permisoSistema WHERE codigo IN ('EMPLEADOS_VER', 'ASISTENCIA_VER', 'PERMISOS_VER');
+INSERT INTO rolPermiso (idRol, idPermisoSistema) SELECT 8, idPermisoSistema FROM permisoSistema WHERE codigo IN ('EMPLEADOS_VER');
+INSERT INTO rolPermiso (idRol, idPermisoSistema) SELECT 9, idPermisoSistema FROM permisoSistema WHERE codigo IN ('PLANILLA_VER', 'REPORTES_VER', 'BITACORA_VER', 'EMPLEADOS_VER');
+INSERT INTO rolPermiso (idRol, idPermisoSistema) SELECT 10, idPermisoSistema FROM permisoSistema WHERE codigo IN ('PLANILLA_VER', 'PLANILLA_GESTIONAR', 'BOLETAS_VER');
+INSERT INTO rolPermiso (idRol, idPermisoSistema) SELECT 11, idPermisoSistema FROM permisoSistema WHERE codigo IN ('ASISTENCIA_VER', 'ASISTENCIA_GESTIONAR');
+INSERT INTO rolPermiso (idRol, idPermisoSistema) SELECT 12, idPermisoSistema FROM permisoSistema WHERE codigo IN ('EMPLEADOS_VER', 'EMPLEADOS_GESTIONAR', 'ACCIONES_VER', 'ACCIONES_GESTIONAR');
+INSERT INTO rolPermiso (idRol, idPermisoSistema) SELECT 13, idPermisoSistema FROM permisoSistema WHERE codigo IN ('PERMISOS_VER', 'PERMISOS_GESTIONAR', 'ASISTENCIA_VER');
+INSERT INTO rolPermiso (idRol, idPermisoSistema) SELECT 14, idPermisoSistema FROM permisoSistema WHERE codigo IN ('ASISTENCIA_VER', 'ASISTENCIA_GESTIONAR', 'PERMISOS_VER');
+INSERT INTO rolPermiso (idRol, idPermisoSistema) SELECT 15, idPermisoSistema FROM permisoSistema WHERE codigo IN ('BITACORA_VER', 'USUARIOS_GESTIONAR');
+-- Usuarios de demostración adicionales (contraseña Demo123*, respuesta de seguridad: demo)
+INSERT INTO usuario (idEmpleado, nombreUsuario, nombreCompleto, contrasena, correo, idRol, preguntaSeguridad, respuestaSeguridad, estado) VALUES
+(1, 'cmenjivar', 'Carlos Eduardo Menjívar Rivas', '$2a$11$d/rZzOgg2EvlpsZb/kuXoeHoDbYNG9gR0slAlYnANdzNH3yQkyCXW', 'cmenjivar@empresa.com.sv', 4, '¿Cuál es su comida favorita?', '$2a$11$JNzVi0y.X7YSCXmRVOW5zu/rvQOA8e5koy1xJaEYMhgFXFGz1hf2e', 'Activo'),
+(2, 'ahernandez', 'Ana Patricia Hernández López', '$2a$11$d/rZzOgg2EvlpsZb/kuXoeHoDbYNG9gR0slAlYnANdzNH3yQkyCXW', 'ahernandez@empresa.com.sv', 7, '¿Cuál es su comida favorita?', '$2a$11$JNzVi0y.X7YSCXmRVOW5zu/rvQOA8e5koy1xJaEYMhgFXFGz1hf2e', 'Activo'),
+(3, 'korellana', 'Karla Beatriz Orellana Cruz', '$2a$11$d/rZzOgg2EvlpsZb/kuXoeHoDbYNG9gR0slAlYnANdzNH3yQkyCXW', 'korellana@empresa.com.sv', 11, '¿Cuál es su comida favorita?', '$2a$11$JNzVi0y.X7YSCXmRVOW5zu/rvQOA8e5koy1xJaEYMhgFXFGz1hf2e', 'Activo'),
+(5, 'mportillo', 'María Fernanda Portillo Gómez', '$2a$11$d/rZzOgg2EvlpsZb/kuXoeHoDbYNG9gR0slAlYnANdzNH3yQkyCXW', 'mportillo@empresa.com.sv', 13, '¿Cuál es su comida favorita?', '$2a$11$JNzVi0y.X7YSCXmRVOW5zu/rvQOA8e5koy1xJaEYMhgFXFGz1hf2e', 'Activo'),
+(6, 'jramirez', 'José Luis Ramírez Aguilar', '$2a$11$d/rZzOgg2EvlpsZb/kuXoeHoDbYNG9gR0slAlYnANdzNH3yQkyCXW', 'jramirez@empresa.com.sv', 14, '¿Cuál es su comida favorita?', '$2a$11$JNzVi0y.X7YSCXmRVOW5zu/rvQOA8e5koy1xJaEYMhgFXFGz1hf2e', 'Activo'),
+(8, 'dflores', 'Daniel Ernesto Flores Alvarado', '$2a$11$d/rZzOgg2EvlpsZb/kuXoeHoDbYNG9gR0slAlYnANdzNH3yQkyCXW', 'dflores@empresa.com.sv', 8, '¿Cuál es su comida favorita?', '$2a$11$JNzVi0y.X7YSCXmRVOW5zu/rvQOA8e5koy1xJaEYMhgFXFGz1hf2e', 'Activo'),
+(9, 'gescobar', 'Gabriela Isabel Escobar Salazar', '$2a$11$d/rZzOgg2EvlpsZb/kuXoeHoDbYNG9gR0slAlYnANdzNH3yQkyCXW', 'gescobar@empresa.com.sv', 6, '¿Cuál es su comida favorita?', '$2a$11$JNzVi0y.X7YSCXmRVOW5zu/rvQOA8e5koy1xJaEYMhgFXFGz1hf2e', 'Activo'),
+(10, 'mguzman', 'Miguel Ángel Guzmán Peña', '$2a$11$d/rZzOgg2EvlpsZb/kuXoeHoDbYNG9gR0slAlYnANdzNH3yQkyCXW', 'mguzman@empresa.com.sv', 5, '¿Cuál es su comida favorita?', '$2a$11$JNzVi0y.X7YSCXmRVOW5zu/rvQOA8e5koy1xJaEYMhgFXFGz1hf2e', 'Activo'),
+(11, 'lcaceres', 'Lucía Carolina Cáceres Vides', '$2a$11$d/rZzOgg2EvlpsZb/kuXoeHoDbYNG9gR0slAlYnANdzNH3yQkyCXW', 'lcaceres@empresa.com.sv', 8, '¿Cuál es su comida favorita?', '$2a$11$JNzVi0y.X7YSCXmRVOW5zu/rvQOA8e5koy1xJaEYMhgFXFGz1hf2e', 'Activo'),
+(12, 'abonilla', 'Andrés Josué Bonilla Argueta', '$2a$11$d/rZzOgg2EvlpsZb/kuXoeHoDbYNG9gR0slAlYnANdzNH3yQkyCXW', 'abonilla@empresa.com.sv', 7, '¿Cuál es su comida favorita?', '$2a$11$JNzVi0y.X7YSCXmRVOW5zu/rvQOA8e5koy1xJaEYMhgFXFGz1hf2e', 'Activo'),
+(13, 'fmendoza', 'Fernando José Mendoza Pineda', '$2a$11$d/rZzOgg2EvlpsZb/kuXoeHoDbYNG9gR0slAlYnANdzNH3yQkyCXW', 'fmendoza@empresa.com.sv', 15, '¿Cuál es su comida favorita?', '$2a$11$JNzVi0y.X7YSCXmRVOW5zu/rvQOA8e5koy1xJaEYMhgFXFGz1hf2e', 'Activo'),
+(14, 'vsandoval', 'Valeria Nicole Sandoval Cortez', '$2a$11$d/rZzOgg2EvlpsZb/kuXoeHoDbYNG9gR0slAlYnANdzNH3yQkyCXW', 'vsandoval@empresa.com.sv', 9, '¿Cuál es su comida favorita?', '$2a$11$JNzVi0y.X7YSCXmRVOW5zu/rvQOA8e5koy1xJaEYMhgFXFGz1hf2e', 'Activo'),
+(15, 'oreyes', 'Oscar Armando Reyes Castillo', '$2a$11$d/rZzOgg2EvlpsZb/kuXoeHoDbYNG9gR0slAlYnANdzNH3yQkyCXW', 'oreyes@empresa.com.sv', 10, '¿Cuál es su comida favorita?', '$2a$11$JNzVi0y.X7YSCXmRVOW5zu/rvQOA8e5koy1xJaEYMhgFXFGz1hf2e', 'Activo');
+INSERT INTO tipoAsistencia (codigo, nombre, descripcion, descuentaDia, requiereHoras) VALUES
+('FER', 'Feriado / asueto', 'Día feriado pagado', 0, 0),
+('TEL', 'Teletrabajo', 'Jornada realizada en modalidad remota', 0, 1),
+('MIS', 'Misión oficial', 'Trabajo fuera de la oficina', 0, 0),
+('CAP', 'Capacitación', 'Asistencia a capacitación', 0, 1),
+('LMA', 'Licencia de maternidad', 'Licencia por maternidad', 0, 0),
+('LPA', 'Licencia de paternidad', 'Licencia por paternidad', 0, 0),
+('DUE', 'Permiso por duelo', 'Fallecimiento de un familiar', 0, 0),
+('DCO', 'Descanso compensatorio', 'Descanso por trabajo en día de asueto', 0, 0);
+INSERT INTO tipoMovimiento (nombre, naturaleza, gravable) VALUES
+('Aguinaldo', 'Ingreso', 0),
+('Bono de transporte', 'Ingreso', 1),
+('Subsidio de alimentación', 'Ingreso', 0),
+('Pensión alimenticia', 'Deducción', 1),
+('Préstamo bancario (libranza)', 'Deducción', 1),
+('Seguro de vida', 'Deducción', 1),
+('Ajuste a favor de la empresa', 'Deducción', 1),
+('Reintegro de gastos', 'Ingreso', 0),
+('Bono de antigüedad', 'Ingreso', 1);
+INSERT INTO parametroLey (codigo, descripcion, valor) VALUES
+('INSAFORP_PATRONAL', '(Informativo) INSAFORP - aporte patronal', 0.01),
+('DIAS_VACACIONES', '(Informativo) Días de vacaciones anuales', 15),
+('RECARGO_VACACIONES', '(Informativo) Recargo sobre el salario de vacaciones', 0.3),
+('HORAS_SEMANA', '(Informativo) Horas de la jornada semanal diurna', 44),
+('LIMITE_CUOTA_PRESTAMO', '(Informativo) Porcentaje máximo del salario para cuotas de préstamo', 0.2),
+('EDAD_MINIMA', '(Informativo) Edad mínima para laborar', 18),
+('EDAD_MAXIMA', '(Informativo) Edad máxima registrada en el sistema', 75),
+('MESES_AGUINALDO', '(Informativo) Meses de antigüedad para el primer aguinaldo', 12);
+INSERT INTO historialSalario (idEmpleado, salarioAnterior, salarioNuevo, fecha, usuarioBd) VALUES
+(2, 560.00, 620.00, '2024-01-01', 'sistema'),
+(5, 900.00, 980.00, '2023-01-02', 'sistema'),
+(11, 650.00, 720.00, '2024-06-01', 'sistema'),
+(14, 1250.00, 1350.00, '2025-01-02', 'sistema'),
+(13, 1900.00, 2100.00, '2022-01-03', 'sistema'),
+(16, 950.00, 1100.00, '2021-03-01', 'sistema'),
+(8, 560.00, 610.00, '2024-03-01', 'sistema'),
+(10, 1350.00, 1500.00, '2023-07-01', 'sistema'),
+(19, 540.00, 590.00, '2025-03-01', 'sistema'),
+(18, 700.00, 760.00, '2025-04-01', 'sistema'),
+(1, 2900.00, 3200.00, '2023-01-01', 'sistema'),
+(4, 1500.00, 1650.00, '2022-01-01', 'sistema'),
+(7, 1350.00, 1480.00, '2022-06-01', 'sistema'),
+(9, 1100.00, 1250.00, '2023-03-01', 'sistema'),
+(12, 720.00, 780.00, '2023-05-01', 'sistema');
+INSERT INTO bitacora (nivel, nombreUsuario, modulo, mensaje, fecha) VALUES
+('INFO', 'demo', 'Login', 'Inicio de sesión correcto', DATEADD(HOUR, -5, GETDATE())),
+('INFO', 'demo', 'Empleados', 'Registro creado', DATEADD(HOUR, -10, GETDATE())),
+('INFO', 'demo', 'Empleados', 'Registro actualizado', DATEADD(HOUR, -15, GETDATE())),
+('INFO', 'demo', 'Asistencia', 'Registro creado', DATEADD(HOUR, -20, GETDATE())),
+('INFO', 'demo', 'Permisos', 'Permiso aprobado', DATEADD(HOUR, -25, GETDATE())),
+('INFO', 'demo', 'Acciones personales', 'Acción de personal aplicada', DATEADD(HOUR, -30, GETDATE())),
+('ADVERTENCIA', 'demo', 'Login', 'Intento fallido para el usuario ''prueba''', DATEADD(HOUR, -35, GETDATE())),
+('INFO', 'demo', 'Planilla mensual', 'Planilla generada', DATEADD(HOUR, -40, GETDATE())),
+('INFO', 'demo', 'Planilla mensual', 'Planilla cerrada', DATEADD(HOUR, -45, GETDATE())),
+('INFO', 'demo', 'Boletas', 'Boleta generada', DATEADD(HOUR, -50, GETDATE())),
+('INFO', 'demo', 'Reportes', 'Reporte exportado a PDF', DATEADD(HOUR, -55, GETDATE())),
+('INFO', 'demo', 'Reportes', 'Reporte exportado a Excel', DATEADD(HOUR, -60, GETDATE())),
+('ERROR', 'demo', 'Conexión', '[ERR-SQL-001] No se pudo conectar con el servidor', DATEADD(HOUR, -65, GETDATE())),
+('INFO', 'demo', 'Usuarios', 'Clave temporal generada', DATEADD(HOUR, -70, GETDATE())),
+('INFO', 'demo', 'Login', 'Cierre de sesión', DATEADD(HOUR, -75, GETDATE()));
 
 GO
