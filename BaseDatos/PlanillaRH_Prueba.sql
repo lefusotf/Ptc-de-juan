@@ -1005,3 +1005,5 @@ INSERT INTO prestamo (idEmpleado, monto, cuotaMensual, saldo, fechaOtorgado, des
 (4, 400.00, 35.00, 210.00, DATEADD(MONTH, -4, CAST(GETDATE() AS DATE)), 'Préstamo personal');
 
 GO
+
+SELECT * FROM usuario;
