@@ -31,7 +31,7 @@ namespace Modelos.Datos
                 Conexion.P("@f", p.FechaOtorgado.Date), Conexion.P("@d", p.Descripcion));
         }
 
-        /// <summary>Un préstamo con pagos realizados solo permite cambiar la descripción, la cuota o cancelarlo.</summary>
+        /// <summary>Un préstamo con pagos realizados solo permite cambiar la descripción, la cuota, cancelarlo o marcarlo como Pagado (liquidación: el saldo queda en cero).</summary>
         public static void Actualizar(Prestamo p)
         {
             DataTable t = Conexion.Consultar("SELECT monto, saldo FROM prestamo WHERE idPrestamo = @id", Conexion.P("@id", p.IdPrestamo));
@@ -45,7 +45,7 @@ namespace Modelos.Datos
             Conexion.EjecutarNoQuery(
                 "UPDATE prestamo SET idEmpleado=@e, monto=@m, cuotaMensual=@c, saldo=@s, fechaOtorgado=@f, descripcion=@d, estado=@es WHERE idPrestamo=@id",
                 Conexion.P("@e", p.IdEmpleado), Conexion.P("@m", p.Monto), Conexion.P("@c", p.CuotaMensual),
-                Conexion.P("@s", conPagos ? saldo : p.Monto), Conexion.P("@f", p.FechaOtorgado.Date),
+                Conexion.P("@s", p.Estado == "Pagado" ? 0m : (conPagos ? saldo : p.Monto)), Conexion.P("@f", p.FechaOtorgado.Date),
                 Conexion.P("@d", p.Descripcion), Conexion.P("@es", p.Estado), Conexion.P("@id", p.IdPrestamo));
         }
 

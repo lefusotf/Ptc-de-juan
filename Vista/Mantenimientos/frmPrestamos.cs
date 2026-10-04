@@ -27,7 +27,7 @@ namespace Vista.Mantenimientos
             Campos.Add(new Campo("cuotaMensual", "Cuota mensual ($)", TipoCampo.Decimal, 9) { Minimo = 1, Maximo = 50000, Ayuda = "No puede exceder el 20% del salario base del empleado ni el monto del préstamo." });
             Campos.Add(new Campo("fechaOtorgado", "Fecha en que se otorga", TipoCampo.Fecha) { FechaMin = DateTime.Today.AddYears(-3), FechaMax = DateTime.Today, Ayuda = "El descuento inicia en la planilla del mes siguiente." });
             Campos.Add(new Campo("descripcion", "Descripción", TipoCampo.Multilinea, 200, false));
-            Campos.Add(new Campo("estado", "Estado", TipoCampo.Combo, 10) { Opciones = new[] { "Activo", "Pagado", "Cancelado" }, Predeterminado = "Activo", Ayuda = "Pagado se asigna automáticamente al llegar el saldo a cero." });
+            Campos.Add(new Campo("estado", "Estado", TipoCampo.Combo, 10) { Opciones = new[] { "Activo", "Pagado", "Cancelado" }, Predeterminado = "Activo", Ayuda = "Pagado se asigna solo al llegar el saldo a cero; también puede marcarlo a mano si el empleado liquidó el préstamo (el saldo queda en $0.00)." });
         }
 
         protected override DataTable Listar(string filtro, int pagina, int tamano, out int total)
@@ -52,11 +52,6 @@ namespace Vista.Mantenimientos
             {
                 MarcarError("cuotaMensual", "Excede el 20% del salario.");
                 return "La cuota no puede exceder el 20% del salario base del empleado (máximo $" + ((decimal)emp["salarioBase"] * 0.20m).ToString("N2") + ").";
-            }
-            if (Opcion("estado") == "Pagado" && FilaActual != null && (decimal)FilaActual["saldo"] > 0)
-            {
-                MarcarError("estado", "El saldo aún no es cero.");
-                return "Un préstamo solo pasa a Pagado cuando su saldo llega a cero.";
             }
             return null;
         }
