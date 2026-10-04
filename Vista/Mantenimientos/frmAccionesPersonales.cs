@@ -12,8 +12,13 @@ namespace Vista.Mantenimientos
     /// Acciones de personal (aumento, promoción, traslado, suspensión, retiro y amonestación). Los campos cambian según el tipo
     /// de acción y, al aplicarla, un procedimiento almacenado actualiza al empleado validando salario, cargo y departamento.
     /// </summary>
-    public class frmAccionesPersonales : frmMantenimiento
+    public partial class frmAccionesPersonales : frmMantenimiento
     {
+        public frmAccionesPersonales()
+        {
+            InitializeComponent();
+        }
+
         private Button _btnAplicar, _btnAnular;
         private bool _enlazado;
 

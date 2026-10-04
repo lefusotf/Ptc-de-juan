@@ -12,8 +12,13 @@ namespace Vista.Mantenimientos
     /// Mantenimiento de empleados (base maestra de datos y perfil salarial). Es coherente por diseño: al elegir el departamento
     /// solo se pueden elegir cargos de ese departamento y el salario debe estar dentro del rango del cargo.
     /// </summary>
-    public class frmEmpleados : frmMantenimiento
+    public partial class frmEmpleados : frmMantenimiento
     {
+        public frmEmpleados()
+        {
+            InitializeComponent();
+        }
+
         protected override string Titulo { get { return "Empleados"; } }
         protected override string PermisoGestionar { get { return Permisos.EmpleadosGestionar; } }
         protected override string ColumnaId { get { return "idEmpleado"; } }

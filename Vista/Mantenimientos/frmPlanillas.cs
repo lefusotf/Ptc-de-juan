@@ -7,8 +7,13 @@ using Vista.Comun;
 namespace Vista.Mantenimientos
 {
     /// <summary>Planillas de la empresa (Administrativa, Operativa, Comercial...): a cuál pertenece cada empleado.</summary>
-    public class frmPlanillas : frmMantenimiento
+    public partial class frmPlanillas : frmMantenimiento
     {
+        public frmPlanillas()
+        {
+            InitializeComponent();
+        }
+
         protected override string Titulo { get { return "Planillas"; } }
         protected override string PermisoGestionar { get { return Permisos.PlanillaGestionar; } }
         protected override string ColumnaId { get { return "idPlanilla"; } }

@@ -13,8 +13,13 @@ namespace Vista.Mantenimientos
     /// Registro de asistencia diaria. Calcula automáticamente horas trabajadas, minutos de tardanza y horas extra con el horario
     /// del empleado y sugiere el tipo (Presente / Tardanza); los tipos sin marcación (ausencia, permisos) no piden horas.
     /// </summary>
-    public class frmAsistencia : frmMantenimiento
+    public partial class frmAsistencia : frmMantenimiento
     {
+        public frmAsistencia()
+        {
+            InitializeComponent();
+        }
+
         private bool _enlazado;
 
         protected override string Titulo { get { return "Asistencia"; } }

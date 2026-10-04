@@ -7,8 +7,13 @@ using Vista.Comun;
 namespace Vista.Mantenimientos
 {
     /// <summary>Catálogo de tipos de asistencia (presente, tardanza, ausencia, permisos...).</summary>
-    public class frmTiposAsistencia : frmMantenimiento
+    public partial class frmTiposAsistencia : frmMantenimiento
     {
+        public frmTiposAsistencia()
+        {
+            InitializeComponent();
+        }
+
         protected override string Titulo { get { return "Tipos de asistencia"; } }
         protected override string PermisoGestionar { get { return Permisos.AsistenciaGestionar; } }
         protected override string ColumnaId { get { return "idTipoAsistencia"; } }

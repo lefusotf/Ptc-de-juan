@@ -6,8 +6,13 @@ using Vista.Comun;
 namespace Vista.Seguridad
 {
     /// <summary>Consulta de la bitácora del sistema (actividades, advertencias y errores) con búsqueda y paginación.</summary>
-    public class frmBitacora : frmMantenimiento
+    public partial class frmBitacora : frmMantenimiento
     {
+        public frmBitacora()
+        {
+            InitializeComponent();
+        }
+
         protected override string Titulo { get { return "Bitácora del sistema"; } }
         protected override string PermisoGestionar { get { return Permisos.BitacoraVer; } }
         protected override string ColumnaId { get { return "idBitacora"; } }

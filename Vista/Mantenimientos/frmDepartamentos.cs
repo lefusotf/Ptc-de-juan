@@ -7,8 +7,13 @@ using Vista.Comun;
 namespace Vista.Mantenimientos
 {
     /// <summary>Mantenimiento de departamentos de la empresa.</summary>
-    public class frmDepartamentos : frmMantenimiento
+    public partial class frmDepartamentos : frmMantenimiento
     {
+        public frmDepartamentos()
+        {
+            InitializeComponent();
+        }
+
         protected override string Titulo { get { return "Departamentos"; } }
         protected override string PermisoGestionar { get { return Permisos.DepartamentosGestionar; } }
         protected override string ColumnaId { get { return "idDepartamento"; } }

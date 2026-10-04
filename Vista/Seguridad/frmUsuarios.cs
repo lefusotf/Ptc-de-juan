@@ -9,8 +9,13 @@ using Vista.Comun;
 namespace Vista.Seguridad
 {
     /// <summary>Usuarios del sistema: se pueden vincular a un empleado, se les asigna un rol y su contraseña se guarda con BCrypt.</summary>
-    public class frmUsuarios : frmMantenimiento
+    public partial class frmUsuarios : frmMantenimiento
     {
+        public frmUsuarios()
+        {
+            InitializeComponent();
+        }
+
         private int? _empleadoActual;
         private bool _enlazado;
 

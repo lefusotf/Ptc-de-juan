@@ -7,8 +7,13 @@ using Vista.Comun;
 namespace Vista.Mantenimientos
 {
     /// <summary>Mantenimiento de horarios de trabajo (hora de entrada, salida y tolerancia).</summary>
-    public class frmHorarios : frmMantenimiento
+    public partial class frmHorarios : frmMantenimiento
     {
+        public frmHorarios()
+        {
+            InitializeComponent();
+        }
+
         protected override string Titulo { get { return "Horarios"; } }
         protected override string PermisoGestionar { get { return Permisos.HorariosGestionar; } }
         protected override string ColumnaId { get { return "idHorario"; } }

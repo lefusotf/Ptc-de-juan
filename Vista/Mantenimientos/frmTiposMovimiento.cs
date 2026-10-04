@@ -7,8 +7,13 @@ using Vista.Comun;
 namespace Vista.Mantenimientos
 {
     /// <summary>Catálogo de tipos de movimiento de planilla (bonos, comisiones, descuentos internos...).</summary>
-    public class frmTiposMovimiento : frmMantenimiento
+    public partial class frmTiposMovimiento : frmMantenimiento
     {
+        public frmTiposMovimiento()
+        {
+            InitializeComponent();
+        }
+
         protected override string Titulo { get { return "Tipos de movimiento"; } }
         protected override string PermisoGestionar { get { return Permisos.PlanillaGestionar; } }
         protected override string ColumnaId { get { return "idTipoMovimiento"; } }

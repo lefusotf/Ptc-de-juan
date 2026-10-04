@@ -9,8 +9,13 @@ using Vista.Comun;
 namespace Vista.Mantenimientos
 {
     /// <summary>Préstamos internos a empleados: sus cuotas se descuentan automáticamente en la planilla mensual.</summary>
-    public class frmPrestamos : frmMantenimiento
+    public partial class frmPrestamos : frmMantenimiento
     {
+        public frmPrestamos()
+        {
+            InitializeComponent();
+        }
+
         protected override string Titulo { get { return "Préstamos"; } }
         protected override string PermisoGestionar { get { return Permisos.PlanillaGestionar; } }
         protected override string ColumnaId { get { return "idPrestamo"; } }

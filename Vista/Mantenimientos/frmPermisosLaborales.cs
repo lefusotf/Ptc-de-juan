@@ -10,8 +10,13 @@ using Vista.Comun;
 namespace Vista.Mantenimientos
 {
     /// <summary>Permisos laborales (permisos con/sin goce, incapacidades y vacaciones) con aprobación y reflejo en la asistencia.</summary>
-    public class frmPermisosLaborales : frmMantenimiento
+    public partial class frmPermisosLaborales : frmMantenimiento
     {
+        public frmPermisosLaborales()
+        {
+            InitializeComponent();
+        }
+
         private Button _btnAprobar, _btnRechazar;
 
         protected override string Titulo { get { return "Permisos"; } }

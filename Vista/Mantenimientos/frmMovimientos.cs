@@ -9,8 +9,13 @@ using Vista.Comun;
 namespace Vista.Mantenimientos
 {
     /// <summary>Planilla Movimiento: bonos, comisiones, viáticos y descuentos internos de un empleado en un mes.</summary>
-    public class frmMovimientos : frmMantenimiento
+    public partial class frmMovimientos : frmMantenimiento
     {
+        public frmMovimientos()
+        {
+            InitializeComponent();
+        }
+
         protected override string Titulo { get { return "Planilla movimiento"; } }
         protected override string PermisoGestionar { get { return Permisos.PlanillaGestionar; } }
         protected override string ColumnaId { get { return "idPlanillaMovimiento"; } }

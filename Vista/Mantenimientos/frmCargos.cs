@@ -7,8 +7,13 @@ using Vista.Comun;
 namespace Vista.Mantenimientos
 {
     /// <summary>Mantenimiento de cargos (puestos): cada cargo pertenece a un departamento y define su rango salarial.</summary>
-    public class frmCargos : frmMantenimiento
+    public partial class frmCargos : frmMantenimiento
     {
+        public frmCargos()
+        {
+            InitializeComponent();
+        }
+
         protected override string Titulo { get { return "Cargos"; } }
         protected override string PermisoGestionar { get { return Permisos.DepartamentosGestionar; } }
         protected override string ColumnaId { get { return "idCargo"; } }
