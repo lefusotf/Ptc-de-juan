@@ -53,12 +53,12 @@ namespace Vista.Mantenimientos
             if (!_enlazado)
             {
                 _enlazado = true;
-                ((ComboBox)ControlDe("idEmpleado")).SelectedIndexChanged += (s, e) => Recalcular(false);
-                ((ComboBox)ControlDe("idTipoAsistencia")).SelectedIndexChanged += (s, e) => Recalcular(true);
-                ((DateTimePicker)ControlDe("horaEntrada")).ValueChanged += (s, e) => Recalcular(false);
-                ((DateTimePicker)ControlDe("horaSalida")).ValueChanged += (s, e) => Recalcular(false);
+                ((ComboBox)ControlDe("idEmpleado")).SelectedIndexChanged += (s, e) => Recalcular(((Control)s).Focused);
+                ((ComboBox)ControlDe("idTipoAsistencia")).SelectedIndexChanged += (s, e) => Recalcular(false);
+                ((DateTimePicker)ControlDe("horaEntrada")).ValueChanged += (s, e) => Recalcular(((Control)s).Focused);
+                ((DateTimePicker)ControlDe("horaSalida")).ValueChanged += (s, e) => Recalcular(((Control)s).Focused);
             }
-            Recalcular(true);
+            Recalcular(false);
         }
 
         private bool RequiereHoras()
@@ -68,7 +68,7 @@ namespace Vista.Mantenimientos
         }
 
         /// <summary>Habilita las horas según el tipo y muestra el cálculo de horas, tardanza y extras.</summary>
-        private void Recalcular(bool cambioTipo)
+        private void Recalcular(bool sugerir)
         {
             bool requiere = RequiereHoras();
             Habilitar("horaEntrada", requiere);
@@ -85,12 +85,12 @@ namespace Vista.Mantenimientos
                 ResultadoAsistencia r = CalculoAsistencia.Calcular(h, Hora("horaEntrada"), Hora("horaSalida"));
                 nota.Text = "Horario: " + h.HoraEntrada.ToString(@"hh\:mm") + " a " + h.HoraSalida.ToString(@"hh\:mm") + " (tolerancia " + h.MinutosTolerancia + " min)\n" +
                             "Trabajadas: " + r.HorasTrabajadas.ToString("0.00") + " h | Tardanza: " + r.MinutosTarde + " min | Extra: " + r.HorasExtra.ToString("0.0") + " h";
-                SugerirTipo(r.TipoSugerido);
+                if (sugerir) SugerirTipo(r.TipoSugerido);
             }
             catch (Exception) { nota.Text = ""; }
         }
 
-        /// <summary>Si el tipo elegido es Presente o Tardanza, lo ajusta al resultado del cálculo.</summary>
+        /// <summary>Solo cuando el usuario cambia empleado u horas: ajusta Presente/Tardanza al cálculo. Nunca pisa el tipo elegido a mano.</summary>
         private void SugerirTipo(string codigo)
         {
             DataRow actual = FilaCombo("idTipoAsistencia");
