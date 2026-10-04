@@ -32,8 +32,8 @@ namespace Vista.Mantenimientos
             Campos.Add(new Campo("tipoAccion", "Tipo de acción", TipoCampo.Combo, 20) { Opciones = new[] { "Aumento salarial", "Promoción", "Traslado", "Suspensión", "Retiro", "Amonestación" } });
             Campos.Add(new Campo("fecha", "Fecha efectiva", TipoCampo.Fecha) { FechaMin = DateTime.Today.AddYears(-5), FechaMax = DateTime.Today.AddMonths(3) });
             Campos.Add(new Campo("descripcion", "Descripción", TipoCampo.Multilinea, 250));
-            Campos.Add(new Campo("idDepartamentoNuevo", "Nuevo departamento", TipoCampo.Combo, 100, false) { Origen = DepartamentoDatos.ListarActivos, Columna = "idDepartamentoNuevo" });
-            Campos.Add(new Campo("idCargoNuevo", "Nuevo cargo", TipoCampo.Combo, 100, false) { Padre = "idDepartamentoNuevo", OrigenDependiente = v => CargoDatos.ListarPorDepartamento(Convert.ToInt32(v)) });
+            Campos.Add(new Campo("idDepartamentoNuevo", "Nuevo departamento", TipoCampo.Combo, 100, false) { Origen = DepartamentoDatos.ListarActivos, ValorMiembro = "idDepartamento", Columna = "idDepartamentoNuevo" });
+            Campos.Add(new Campo("idCargoNuevo", "Nuevo cargo", TipoCampo.Combo, 100, false) { ValorMiembro = "idCargo", Padre = "idDepartamentoNuevo", OrigenDependiente = v => CargoDatos.ListarPorDepartamento(Convert.ToInt32(v)) });
             Campos.Add(new Campo("salarioNuevo", "Nuevo salario base ($)", TipoCampo.Decimal, 10, false) { Minimo = 0.01m, Maximo = 99999 });
             Campos.Add(new Campo("fechaFin", "Fecha final de la suspensión", TipoCampo.FechaOpcional, 10, false) { FechaMin = DateTime.Today.AddYears(-5), FechaMax = DateTime.Today.AddYears(1) });
             Campos.Add(new Campo("resumen", "", TipoCampo.Nota) { Predeterminado = "Seleccione el empleado y el tipo de acción." });
