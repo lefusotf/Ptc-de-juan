@@ -770,15 +770,30 @@ END
 GO
 
 -- =====================================================================
--- 6. DATOS INICIALES
+-- 6. DATOS INICIALES Y DE DEMOSTRACIÓN (ordenados por dependencia)
 -- =====================================================================
 
+-- ---------------------------------------------------------------------
+-- 6.1  Configuración y seguridad
+-- ---------------------------------------------------------------------
 INSERT INTO configuracion (idConfiguracion, nombreEmpresa, moneda, configurado) VALUES (1, 'Empresa sin configurar', 'USD', 0);
 
 INSERT INTO rol (nombre, descripcion) VALUES
 ('Administrador', 'Administra la configuración, los usuarios y tiene control general del sistema'),
 ('Recursos Humanos', 'Gestiona empleados, asistencia, permisos, acciones de personal y movimientos'),
-('Contador', 'Genera y cierra la planilla, emite boletas y reportes');
+('Contador', 'Genera y cierra la planilla, emite boletas y reportes'),
+('Analista de Personal', 'Empleados y acciones de personal'),
+('Auditor', 'Consulta de planilla, reportes y bitácora'),
+('Auxiliar Contable', 'Apoyo en planilla y movimientos'),
+('Consulta', 'Solo consulta de empleados'),
+('Coordinador', 'Asistencia y permisos del equipo'),
+('Gerente', 'Consulta general y reportes'),
+('Jefe de Recursos Humanos', 'Gestión completa del personal'),
+('Planillero', 'Genera planillas y boletas'),
+('Recepcionista', 'Registro de asistencia'),
+('Secretaria', 'Permisos y asistencia'),
+('Soporte', 'Consulta de bitácora y usuarios'),
+('Supervisor', 'Consulta de personal y asistencia');
 
 INSERT INTO permisoSistema (codigo, descripcion, modulo) VALUES
 ('BITACORA_VER', 'Consultar la bitácora del sistema', 'Seguridad'),
@@ -818,9 +833,35 @@ INSERT INTO rolPermiso (idRol, idPermisoSistema)
 SELECT 3, idPermisoSistema FROM permisoSistema
 WHERE codigo IN ('DEPARTAMENTOS_VER','HORARIOS_VER','EMPLEADOS_VER','ASISTENCIA_VER','PERMISOS_VER','ACCIONES_VER',
                  'PLANILLA_VER','PLANILLA_GESTIONAR','BOLETAS_VER','REPORTES_VER');
+-- Analista de Personal
+INSERT INTO rolPermiso (idRol, idPermisoSistema) SELECT 4, idPermisoSistema FROM permisoSistema WHERE codigo IN ('EMPLEADOS_VER', 'EMPLEADOS_GESTIONAR', 'ACCIONES_VER', 'ACCIONES_GESTIONAR');
+-- Auditor
+INSERT INTO rolPermiso (idRol, idPermisoSistema) SELECT 5, idPermisoSistema FROM permisoSistema WHERE codigo IN ('PLANILLA_VER', 'REPORTES_VER', 'BITACORA_VER', 'EMPLEADOS_VER');
+-- Auxiliar Contable
+INSERT INTO rolPermiso (idRol, idPermisoSistema) SELECT 6, idPermisoSistema FROM permisoSistema WHERE codigo IN ('EMPLEADOS_VER', 'PLANILLA_VER', 'PLANILLA_GESTIONAR');
+-- Consulta
+INSERT INTO rolPermiso (idRol, idPermisoSistema) SELECT 7, idPermisoSistema FROM permisoSistema WHERE codigo IN ('EMPLEADOS_VER');
+-- Coordinador
+INSERT INTO rolPermiso (idRol, idPermisoSistema) SELECT 8, idPermisoSistema FROM permisoSistema WHERE codigo IN ('ASISTENCIA_VER', 'ASISTENCIA_GESTIONAR', 'PERMISOS_VER');
+-- Gerente
+INSERT INTO rolPermiso (idRol, idPermisoSistema) SELECT 9, idPermisoSistema FROM permisoSistema WHERE codigo IN ('EMPLEADOS_VER', 'REPORTES_VER', 'PLANILLA_VER');
+-- Jefe de Recursos Humanos
+INSERT INTO rolPermiso (idRol, idPermisoSistema) SELECT 10, idPermisoSistema FROM permisoSistema WHERE codigo IN ('DEPARTAMENTOS_VER', 'DEPARTAMENTOS_GESTIONAR', 'HORARIOS_VER', 'HORARIOS_GESTIONAR', 'EMPLEADOS_VER', 'EMPLEADOS_GESTIONAR', 'ASISTENCIA_VER', 'ASISTENCIA_GESTIONAR', 'PERMISOS_VER', 'PERMISOS_GESTIONAR', 'ACCIONES_VER', 'ACCIONES_GESTIONAR', 'REPORTES_VER');
+-- Planillero
+INSERT INTO rolPermiso (idRol, idPermisoSistema) SELECT 11, idPermisoSistema FROM permisoSistema WHERE codigo IN ('PLANILLA_VER', 'PLANILLA_GESTIONAR', 'BOLETAS_VER');
+-- Recepcionista
+INSERT INTO rolPermiso (idRol, idPermisoSistema) SELECT 12, idPermisoSistema FROM permisoSistema WHERE codigo IN ('ASISTENCIA_VER', 'ASISTENCIA_GESTIONAR');
+-- Secretaria
+INSERT INTO rolPermiso (idRol, idPermisoSistema) SELECT 13, idPermisoSistema FROM permisoSistema WHERE codigo IN ('PERMISOS_VER', 'PERMISOS_GESTIONAR', 'ASISTENCIA_VER');
+-- Soporte
+INSERT INTO rolPermiso (idRol, idPermisoSistema) SELECT 14, idPermisoSistema FROM permisoSistema WHERE codigo IN ('BITACORA_VER', 'USUARIOS_GESTIONAR');
+-- Supervisor
+INSERT INTO rolPermiso (idRol, idPermisoSistema) SELECT 15, idPermisoSistema FROM permisoSistema WHERE codigo IN ('EMPLEADOS_VER', 'ASISTENCIA_VER', 'PERMISOS_VER');
 GO
 
--- Parámetros de ley (editables). Verifique su vigencia antes de procesar una planilla real.
+-- ---------------------------------------------------------------------
+-- 6.2  Parámetros de ley (editables; verifique su vigencia antes de procesar una planilla real)
+-- ---------------------------------------------------------------------
 INSERT INTO parametroLey (codigo, descripcion, valor) VALUES
 ('ISSS_EMPLEADO', 'ISSS - porcentaje que aporta el empleado', 0.0300),
 ('ISSS_PATRONAL', 'ISSS - porcentaje que aporta el patrono', 0.0750),
@@ -832,7 +873,15 @@ INSERT INTO parametroLey (codigo, descripcion, valor) VALUES
 ('HORAS_DIA', 'Horas de la jornada diaria para calcular el valor de la hora', 8.0000),
 ('FACTOR_HORA_EXTRA', 'Factor de pago de la hora extra diurna (recargo del 100%)', 2.0000),
 ('SALARIO_MINIMO', 'Salario mínimo mensual vigente', 408.8000),
-('DESCUENTA_TARDANZA', 'Descontar los minutos de tardanza (1 = sí, 0 = no)', 1.0000);
+('DESCUENTA_TARDANZA', 'Descontar los minutos de tardanza (1 = sí, 0 = no)', 1.0000),
+('DIAS_VACACIONES', '(Informativo) Días de vacaciones anuales', 15),
+('EDAD_MAXIMA', '(Informativo) Edad máxima registrada en el sistema', 75),
+('EDAD_MINIMA', '(Informativo) Edad mínima para laborar', 18),
+('HORAS_SEMANA', '(Informativo) Horas de la jornada semanal diurna', 44),
+('INSAFORP_PATRONAL', '(Informativo) INSAFORP - aporte patronal', 0.01),
+('LIMITE_CUOTA_PRESTAMO', '(Informativo) Porcentaje máximo del salario para cuotas de préstamo', 0.2),
+('MESES_AGUINALDO', '(Informativo) Meses de antigüedad para el primer aguinaldo', 12),
+('RECARGO_VACACIONES', '(Informativo) Recargo sobre el salario de vacaciones', 0.3);
 
 -- Tabla de retención de renta mensual
 INSERT INTO tramoRenta (nombre, desde, hasta, porcentaje, excesoSobre, cuotaFija) VALUES
@@ -841,110 +890,185 @@ INSERT INTO tramoRenta (nombre, desde, hasta, porcentaje, excesoSobre, cuotaFija
 ('Tramo III', 895.25, 2038.10, 20, 895.24,  60.00),
 ('Tramo IV', 2038.11, 99999999.99, 30, 2038.10, 288.57);
 
+-- ---------------------------------------------------------------------
+-- 6.3  Catálogos: tipos de asistencia y de movimiento
+-- ---------------------------------------------------------------------
 INSERT INTO tipoAsistencia (codigo, nombre, descripcion, descuentaDia, requiereHoras) VALUES
 ('PRE', 'Presente', 'Asistió y cumplió su jornada', 0, 1),
 ('TAR', 'Tardanza', 'Llegó después de la tolerancia del horario', 0, 1),
+('TEL', 'Teletrabajo', 'Jornada realizada en modalidad remota', 0, 1),
+('CAP', 'Capacitación', 'Asistencia a capacitación', 0, 1),
+('MIS', 'Misión oficial', 'Trabajo fuera de la oficina', 0, 0),
+('FER', 'Feriado / asueto', 'Día feriado pagado', 0, 0),
 ('AUS', 'Ausencia injustificada', 'No se presentó y no tiene permiso; se descuenta el día', 1, 0),
 ('PCG', 'Permiso con goce de sueldo', 'Permiso aprobado sin descuento', 0, 0),
 ('PSG', 'Permiso sin goce de sueldo', 'Permiso aprobado con descuento del día', 1, 0),
+('DUE', 'Permiso por duelo', 'Fallecimiento de un familiar', 0, 0),
 ('INC', 'Incapacidad', 'Incapacidad médica comprobada', 0, 0),
-('VAC', 'Vacaciones', 'Día de vacaciones aprobado', 0, 0);
+('LMA', 'Licencia de maternidad', 'Licencia por maternidad', 0, 0),
+('LPA', 'Licencia de paternidad', 'Licencia por paternidad', 0, 0),
+('VAC', 'Vacaciones', 'Día de vacaciones aprobado', 0, 0),
+('DCO', 'Descanso compensatorio', 'Descanso por trabajo en día de asueto', 0, 0);
 
 INSERT INTO tipoMovimiento (nombre, naturaleza, gravable) VALUES
+('Aguinaldo', 'Ingreso', 0),
+('Bonificación extraordinaria', 'Ingreso', 1),
+('Bono de antigüedad', 'Ingreso', 1),
+('Bono de transporte', 'Ingreso', 1),
 ('Bono por desempeño', 'Ingreso', 1),
 ('Comisión por ventas', 'Ingreso', 1),
-('Bonificación extraordinaria', 'Ingreso', 1),
+('Reintegro de gastos', 'Ingreso', 0),
+('Subsidio de alimentación', 'Ingreso', 0),
 ('Viáticos', 'Ingreso', 0),
-('Descuento por uniforme', 'Deducción', 1),
+('Ajuste a favor de la empresa', 'Deducción', 1),
 ('Anticipo de salario', 'Deducción', 1),
 ('Cuota sindical', 'Deducción', 1),
-('Seguro médico privado', 'Deducción', 1),
-('Embargo judicial', 'Deducción', 1);
+('Descuento por uniforme', 'Deducción', 1),
+('Embargo judicial', 'Deducción', 1),
+('Pensión alimenticia', 'Deducción', 1),
+('Préstamo bancario (libranza)', 'Deducción', 1),
+('Seguro de vida', 'Deducción', 1),
+('Seguro médico privado', 'Deducción', 1);
 GO
 
+-- ---------------------------------------------------------------------
+-- 6.4  Organización: departamentos, cargos, horarios y planillas
+-- ---------------------------------------------------------------------
 INSERT INTO departamento (nombre, descripcion) VALUES
 ('Administración', 'Dirección general y apoyo administrativo'),
-('Recursos Humanos', 'Gestión del talento, planilla y personal'),
+('Auditoría Interna', 'Control interno y cumplimiento'),
+('Capacitación', 'Formación y desarrollo del personal'),
+('Compras', 'Adquisiciones y proveedores'),
+('Control de Calidad', 'Aseguramiento y control de calidad'),
 ('Finanzas y Contabilidad', 'Contabilidad, tesorería y control financiero'),
-('Ventas y Mercadeo', 'Ventas, publicidad y atención comercial'),
-('Tecnología de la Información', 'Desarrollo, infraestructura y soporte técnico'),
-('Operaciones', 'Producción y mantenimiento'),
+('Legal', 'Asesoría jurídica y contratos'),
 ('Logística y Bodega', 'Almacenaje, despacho y transporte'),
-('Servicio al Cliente', 'Atención, soporte y calidad del servicio');
+('Mantenimiento', 'Mantenimiento de instalaciones y equipo'),
+('Operaciones', 'Producción y mantenimiento'),
+('Recursos Humanos', 'Gestión del talento, planilla y personal'),
+('Seguridad Industrial', 'Prevención de riesgos y salud ocupacional'),
+('Servicio al Cliente', 'Atención, soporte y calidad del servicio'),
+('Tecnología de la Información', 'Desarrollo, infraestructura y soporte técnico'),
+('Ventas y Mercadeo', 'Ventas, publicidad y atención comercial');
 
 INSERT INTO cargo (idDepartamento, nombre, salarioMinimo, salarioMaximo) VALUES
 (1, 'Gerente General', 2500.00, 4500.00),
 (1, 'Asistente Administrativo', 450.00, 900.00),
 (1, 'Recepcionista', 408.80, 650.00),
-(2, 'Jefe de Recursos Humanos', 1200.00, 2200.00),
-(2, 'Analista de Planillas', 700.00, 1300.00),
-(2, 'Técnico de Reclutamiento', 500.00, 900.00),
-(3, 'Contador General', 1100.00, 2200.00),
-(3, 'Auxiliar Contable', 500.00, 900.00),
-(3, 'Tesorero', 900.00, 1600.00),
-(4, 'Jefe de Ventas', 1100.00, 2000.00),
-(4, 'Ejecutivo de Ventas', 450.00, 1200.00),
-(4, 'Diseñador de Mercadeo', 500.00, 1000.00),
-(5, 'Jefe de Tecnología', 1400.00, 2600.00),
-(5, 'Desarrollador de Software', 800.00, 1800.00),
-(5, 'Técnico de Soporte', 500.00, 950.00),
-(6, 'Supervisor de Operaciones', 800.00, 1400.00),
-(6, 'Operario de Producción', 408.80, 650.00),
-(6, 'Técnico de Mantenimiento', 500.00, 900.00),
-(7, 'Encargado de Bodega', 550.00, 950.00),
-(7, 'Motorista', 450.00, 750.00),
-(7, 'Auxiliar de Bodega', 408.80, 600.00),
-(8, 'Jefe de Servicio al Cliente', 900.00, 1500.00),
-(8, 'Agente de Servicio', 408.80, 700.00),
-(8, 'Supervisor de Calidad', 600.00, 1000.00);
+(2, 'Auditor Interno', 1000.00, 2000.00),
+(3, 'Instructor de Capacitación', 600.00, 1200.00),
+(4, 'Encargado de Compras', 700.00, 1400.00),
+(5, 'Inspector de Calidad', 550.00, 1100.00),
+(6, 'Contador General', 1100.00, 2200.00),
+(6, 'Tesorero', 900.00, 1600.00),
+(6, 'Auxiliar Contable', 500.00, 900.00),
+(7, 'Asesor Legal', 1200.00, 2400.00),
+(8, 'Encargado de Bodega', 550.00, 950.00),
+(8, 'Motorista', 450.00, 750.00),
+(8, 'Auxiliar de Bodega', 408.80, 600.00),
+(9, 'Técnico Electricista', 450.00, 900.00),
+(10, 'Supervisor de Operaciones', 800.00, 1400.00),
+(10, 'Técnico de Mantenimiento', 500.00, 900.00),
+(10, 'Operario de Producción', 408.80, 650.00),
+(11, 'Jefe de Recursos Humanos', 1200.00, 2200.00),
+(11, 'Analista de Planillas', 700.00, 1300.00),
+(11, 'Técnico de Reclutamiento', 500.00, 900.00),
+(12, 'Oficial de Seguridad', 500.00, 1000.00),
+(13, 'Jefe de Servicio al Cliente', 900.00, 1500.00),
+(13, 'Supervisor de Calidad', 600.00, 1000.00),
+(13, 'Agente de Servicio', 408.80, 700.00),
+(14, 'Jefe de Tecnología', 1400.00, 2600.00),
+(14, 'Desarrollador de Software', 800.00, 1800.00),
+(14, 'Técnico de Soporte', 500.00, 950.00),
+(15, 'Jefe de Ventas', 1100.00, 2000.00),
+(15, 'Ejecutivo de Ventas', 450.00, 1200.00),
+(15, 'Diseñador de Mercadeo', 500.00, 1000.00);
 
 INSERT INTO horario (nombre, horaEntrada, horaSalida, minutosTolerancia, horasAlmuerzo) VALUES
-('Administrativo', '08:00', '17:00', 10, 1.00),
-('Operativo diurno', '07:00', '16:00', 10, 1.00),
-('Turno tarde', '12:00', '21:00', 10, 1.00),
 ('Bodega temprano', '06:00', '15:00', 10, 1.00),
+('Seguridad matutino', '06:00', '14:00', 10, 0.50),
+('Operativo diurno', '07:00', '16:00', 10, 1.00),
+('Taller', '07:30', '16:30', 10, 1.00),
+('Administrativo', '08:00', '17:00', 10, 1.00),
+('Medio tiempo', '08:00', '13:00', 10, 0.00),
+('Fin de semana', '08:00', '14:00', 10, 0.00),
+('Corrido sin almuerzo', '08:00', '16:00', 10, 0.00),
 ('Comercial', '08:30', '17:30', 15, 1.00),
-('Medio tiempo', '08:00', '13:00', 10, 0.00);
+('Atención al cliente', '09:00', '18:00', 10, 1.00),
+('Flexible administrativo', '09:00', '18:00', 15, 1.00),
+('Turno tarde', '12:00', '21:00', 10, 1.00),
+('Medio tiempo tarde', '13:00', '18:00', 10, 0.00),
+('Seguridad vespertino', '14:00', '22:00', 10, 0.50),
+('Turno nocturno', '19:00', '23:30', 10, 0.50);
 
 INSERT INTO planilla (nombre, descripcion) VALUES
 ('Planilla Administrativa', 'Personal administrativo y de oficina'),
+('Planilla Comercial', 'Personal de ventas y mercadeo'),
+('Planilla de Bodega', 'Personal de bodega y despacho'),
+('Planilla de Calidad', 'Control y aseguramiento de calidad'),
+('Planilla de Capacitación', 'Instructores y formadores'),
+('Planilla de Compras', 'Personal de compras y proveedores'),
+('Planilla de Mantenimiento', 'Personal técnico de mantenimiento'),
+('Planilla de Pasantes', 'Practicantes y pasantes'),
+('Planilla de Proyectos', 'Personal asignado a proyectos'),
+('Planilla de Seguridad', 'Personal de seguridad y vigilancia'),
+('Planilla de Transporte', 'Motoristas y personal de transporte'),
+('Planilla Gerencial', 'Cargos de dirección y gerencia'),
+('Planilla Legal', 'Personal del área legal'),
 ('Planilla Operativa', 'Personal de producción, bodega y servicio'),
-('Planilla Comercial', 'Personal de ventas y mercadeo');
+('Planilla Temporal', 'Personal contratado por período definido');
 
-
-INSERT INTO empleado (nombres, apellidos, dui, nit, numeroIsss, numeroNup, sexo, fechaNacimiento, telefono, correo, direccion,
-                      idDepartamento, idCargo, idHorario, idPlanilla, fechaIngreso, salarioBase, estado)
-VALUES
-('Carlos Eduardo','Menjívar Rivas','05870761-4','1219-121775-625-3','366113609','779123746044','M','1978-03-14','2869-9953','carlos.menjivar@empresa.com.sv','Colonia Escalón, San Salvador',1,1,1,1,'2019-02-01',3200.00,'Activo'),
-('Ana Patricia','Hernández López','03252646-4','1469-298616-651-5','266173260','443619421573','F','1990-07-22','7697-9060','ana.hernandez@empresa.com.sv','Colonia Escalón, San Salvador',1,2,1,1,'2021-05-10',620.00,'Activo'),
-('Karla Beatriz','Orellana Cruz','02131326-4','1217-158439-485-9','240892401','761245766653','F','1998-11-05','7616-5762','karla.orellana@empresa.com.sv','Colonia Escalón, San Salvador',1,3,1,1,'2023-01-16',450.00,'Activo'),
-('Roberto Antonio','Chávez Martínez','01708277-0','0955-275257-164-2','941210101','437524425296','M','1982-09-30','7521-7396','roberto.chavez@empresa.com.sv','Colonia Escalón, San Salvador',2,4,1,1,'2019-08-01',1650.00,'Activo'),
-('María Fernanda','Portillo Gómez','02246012-9','1165-151562-386-0','213960451','156149968611','F','1993-04-18','6761-6790','maria.portillo@empresa.com.sv','Colonia Escalón, San Salvador',2,5,1,1,'2020-03-02',980.00,'Activo'),
-('José Luis','Ramírez Aguilar','01216344-0','0152-233795-488-5','833144986','595225499138','M','1996-12-09','6224-9152','jose.ramirez@empresa.com.sv','Colonia Escalón, San Salvador',2,6,1,1,'2022-06-01',640.00,'Activo'),
-('Sofía Alejandra','Quintanilla Mejía','04913980-4','1270-262163-825-2','265238756','673770100602','F','1985-06-27','2544-6511','sofia.quintanilla@empresa.com.sv','Colonia Escalón, San Salvador',3,7,1,1,'2020-01-13',1480.00,'Activo'),
-('Daniel Ernesto','Flores Alvarado','04848838-1','1325-161165-695-1','687716833','136074104939','M','1997-02-11','2762-3840','daniel.flores@empresa.com.sv','Colonia Escalón, San Salvador',3,8,1,1,'2022-09-05',610.00,'Activo'),
-('Gabriela Isabel','Escobar Salazar','01379472-3','1427-242807-954-0','585138951','932657128915','F','1989-10-03','7293-8927','gabriela.escobar@empresa.com.sv','Colonia Escalón, San Salvador',3,9,1,1,'2021-02-15',1250.00,'Activo'),
-('Miguel Ángel','Guzmán Peña','01171713-1','0364-269253-543-3','943326434','670726706234','M','1984-01-25','2264-4047','miguel.guzman@empresa.com.sv','Colonia Escalón, San Salvador',4,10,5,3,'2019-11-04',1500.00,'Activo'),
-('Lucía Carolina','Cáceres Vides','04271317-8','0658-211504-546-6','184459259','436653217611','F','1999-08-14','2452-3862','lucia.caceres@empresa.com.sv','Colonia Escalón, San Salvador',4,11,5,3,'2023-03-01',720.00,'Activo'),
-('Andrés Josué','Bonilla Argueta','03209925-5','1050-230443-799-6','408883592','295282286164','M','1995-05-20','6631-8897','andres.bonilla@empresa.com.sv','Colonia Escalón, San Salvador',4,12,5,3,'2022-01-17',780.00,'Activo'),
-('Fernando José','Mendoza Pineda','04729431-5','0345-238215-816-8','955462995','994529299931','M','1987-12-01','2968-4511','fernando.mendoza@empresa.com.sv','Colonia Escalón, San Salvador',5,13,1,1,'2020-07-01',2100.00,'Activo'),
-('Valeria Nicole','Sandoval Cortez','02940577-2','0110-124410-900-7','793292768','548095837031','F','1996-03-08','7902-3989','valeria.sandoval@empresa.com.sv','Colonia Escalón, San Salvador',5,14,1,1,'2021-10-18',1350.00,'Activo'),
-('Oscar Armando','Reyes Castillo','01228042-0','0820-141093-361-8','837829360','970041542062','M','1994-09-16','7321-2797','oscar.reyes@empresa.com.sv','Colonia Escalón, San Salvador',5,15,1,1,'2023-04-03',720.00,'Activo'),
-('Wilfredo Antonio','Lara Bernal','03352771-4','1238-296934-582-3','711855694','719741018004','M','1980-07-07','6786-3172','wilfredo.lara@empresa.com.sv','Colonia Escalón, San Salvador',6,16,2,2,'2019-05-06',1100.00,'Activo'),
-('Rosa Elena','Campos Henríquez','01851072-6','0640-125278-978-6','283905224','852074696809','F','1992-02-19','2877-6836','rosa.campos@empresa.com.sv','Colonia Escalón, San Salvador',6,17,2,2,'2022-02-14',520.00,'Activo'),
-('Néstor Ariel','Villalta Ayala','02556046-5','1422-265173-109-8','436672727','745433881515','M','1991-11-23','2398-6154','nestor.villalta@empresa.com.sv','Colonia Escalón, San Salvador',7,19,4,2,'2021-08-02',760.00,'Activo'),
-('Julio César','Alas Recinos','02353844-6','0634-167141-065-0','541997588','954290082848','M','1986-04-04','6524-1252','julio.alas@empresa.com.sv','Colonia Escalón, San Salvador',7,20,4,2,'2020-11-09',590.00,'Activo'),
-('Diana Marisol','Ventura Torres','01480764-2','0297-161662-024-4','232092060','852022445999','F','2000-01-30','7690-6739','diana.ventura@empresa.com.sv','Colonia Escalón, San Salvador',8,23,3,2,DATEADD(DAY, 9, DATEADD(MONTH, -1, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))),500.00,'Activo');
+-- ---------------------------------------------------------------------
+-- 6.5  Personal: empleados y usuarios
+-- ---------------------------------------------------------------------
+INSERT INTO empleado (nombres, apellidos, dui, nit, numeroIsss, numeroNup, sexo, fechaNacimiento, telefono, correo, direccion, idDepartamento, idCargo, idHorario, idPlanilla, fechaIngreso, salarioBase, estado) VALUES
+('Carlos Eduardo', 'Menjívar Rivas', '05870761-4', '1219-121775-625-3', '366113609', '779123746044', 'M', '1978-03-14', '2869-9953', 'carlos.menjivar@empresa.com.sv', 'Colonia Escalón, San Salvador', 1, 1, 5, 1, '2019-02-01', 3200.00, 'Activo'),
+('Ana Patricia', 'Hernández López', '03252646-4', '1469-298616-651-5', '266173260', '443619421573', 'F', '1990-07-22', '7697-9060', 'ana.hernandez@empresa.com.sv', 'Colonia Escalón, San Salvador', 1, 2, 5, 1, '2021-05-10', 620.00, 'Activo'),
+('Karla Beatriz', 'Orellana Cruz', '02131326-4', '1217-158439-485-9', '240892401', '761245766653', 'F', '1998-11-05', '7616-5762', 'karla.orellana@empresa.com.sv', 'Colonia Escalón, San Salvador', 1, 3, 5, 1, '2023-01-16', 450.00, 'Activo'),
+('Sofía Alejandra', 'Quintanilla Mejía', '04913980-4', '1270-262163-825-2', '265238756', '673770100602', 'F', '1985-06-27', '2544-6511', 'sofia.quintanilla@empresa.com.sv', 'Colonia Escalón, San Salvador', 6, 8, 5, 1, '2020-01-13', 1480.00, 'Activo'),
+('Gabriela Isabel', 'Escobar Salazar', '01379472-3', '1427-242807-954-0', '585138951', '932657128915', 'F', '1989-10-03', '7293-8927', 'gabriela.escobar@empresa.com.sv', 'Colonia Escalón, San Salvador', 6, 9, 5, 1, '2021-02-15', 1250.00, 'Activo'),
+('Daniel Ernesto', 'Flores Alvarado', '04848838-1', '1325-161165-695-1', '687716833', '136074104939', 'M', '1997-02-11', '2762-3840', 'daniel.flores@empresa.com.sv', 'Colonia Escalón, San Salvador', 6, 10, 5, 1, '2022-09-05', 610.00, 'Activo'),
+('Néstor Ariel', 'Villalta Ayala', '02556046-5', '1422-265173-109-8', '436672727', '745433881515', 'M', '1991-11-23', '2398-6154', 'nestor.villalta@empresa.com.sv', 'Colonia Escalón, San Salvador', 8, 12, 1, 14, '2021-08-02', 760.00, 'Activo'),
+('Julio César', 'Alas Recinos', '02353844-6', '0634-167141-065-0', '541997588', '954290082848', 'M', '1986-04-04', '6524-1252', 'julio.alas@empresa.com.sv', 'Colonia Escalón, San Salvador', 8, 13, 1, 14, '2020-11-09', 590.00, 'Activo'),
+('Wilfredo Antonio', 'Lara Bernal', '03352771-4', '1238-296934-582-3', '711855694', '719741018004', 'M', '1980-07-07', '6786-3172', 'wilfredo.lara@empresa.com.sv', 'Colonia Escalón, San Salvador', 10, 16, 3, 14, '2019-05-06', 1100.00, 'Activo'),
+('Rosa Elena', 'Campos Henríquez', '01851072-6', '0640-125278-978-6', '283905224', '852074696809', 'F', '1992-02-19', '2877-6836', 'rosa.campos@empresa.com.sv', 'Colonia Escalón, San Salvador', 10, 18, 3, 14, '2022-02-14', 520.00, 'Activo'),
+('Roberto Antonio', 'Chávez Martínez', '01708277-0', '0955-275257-164-2', '941210101', '437524425296', 'M', '1982-09-30', '7521-7396', 'roberto.chavez@empresa.com.sv', 'Colonia Escalón, San Salvador', 11, 19, 5, 1, '2019-08-01', 1650.00, 'Activo'),
+('María Fernanda', 'Portillo Gómez', '02246012-9', '1165-151562-386-0', '213960451', '156149968611', 'F', '1993-04-18', '6761-6790', 'maria.portillo@empresa.com.sv', 'Colonia Escalón, San Salvador', 11, 20, 5, 1, '2020-03-02', 980.00, 'Activo'),
+('José Luis', 'Ramírez Aguilar', '01216344-0', '0152-233795-488-5', '833144986', '595225499138', 'M', '1996-12-09', '6224-9152', 'jose.ramirez@empresa.com.sv', 'Colonia Escalón, San Salvador', 11, 21, 5, 1, '2022-06-01', 640.00, 'Activo'),
+('Diana Marisol', 'Ventura Torres', '01480764-2', '0297-161662-024-4', '232092060', '852022445999', 'F', '2000-01-30', '7690-6739', 'diana.ventura@empresa.com.sv', 'Colonia Escalón, San Salvador', 13, 25, 12, 14, DATEADD(DAY, 9, DATEADD(MONTH, -1, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))), 500.00, 'Activo'),
+('Fernando José', 'Mendoza Pineda', '04729431-5', '0345-238215-816-8', '955462995', '994529299931', 'M', '1987-12-01', '2968-4511', 'fernando.mendoza@empresa.com.sv', 'Colonia Escalón, San Salvador', 14, 26, 5, 1, '2020-07-01', 2100.00, 'Activo'),
+('Valeria Nicole', 'Sandoval Cortez', '02940577-2', '0110-124410-900-7', '793292768', '548095837031', 'F', '1996-03-08', '7902-3989', 'valeria.sandoval@empresa.com.sv', 'Colonia Escalón, San Salvador', 14, 27, 5, 1, '2021-10-18', 1350.00, 'Activo'),
+('Oscar Armando', 'Reyes Castillo', '01228042-0', '0820-141093-361-8', '837829360', '970041542062', 'M', '1994-09-16', '7321-2797', 'oscar.reyes@empresa.com.sv', 'Colonia Escalón, San Salvador', 14, 28, 5, 1, '2023-04-03', 720.00, 'Activo'),
+('Miguel Ángel', 'Guzmán Peña', '01171713-1', '0364-269253-543-3', '943326434', '670726706234', 'M', '1984-01-25', '2264-4047', 'miguel.guzman@empresa.com.sv', 'Colonia Escalón, San Salvador', 15, 29, 9, 2, '2019-11-04', 1500.00, 'Activo'),
+('Lucía Carolina', 'Cáceres Vides', '04271317-8', '0658-211504-546-6', '184459259', '436653217611', 'F', '1999-08-14', '2452-3862', 'lucia.caceres@empresa.com.sv', 'Colonia Escalón, San Salvador', 15, 30, 9, 2, '2023-03-01', 720.00, 'Activo'),
+('Andrés Josué', 'Bonilla Argueta', '03209925-5', '1050-230443-799-6', '408883592', '295282286164', 'M', '1995-05-20', '6631-8897', 'andres.bonilla@empresa.com.sv', 'Colonia Escalón, San Salvador', 15, 31, 9, 2, '2022-01-17', 780.00, 'Activo');
 GO
 
 -- Usuarios de demostración (el administrador se crea en la Configuración Inicial de la aplicación)
 --   rrhh  / Rrhh123*  (Recursos Humanos)      respuesta de seguridad: azul
 --   conta / Conta123* (Contador)              respuesta de seguridad: sansalvador
+-- Los demás usuarios usan la contraseña Demo123* y la respuesta de seguridad: demo
 INSERT INTO usuario (idEmpleado, nombreUsuario, nombreCompleto, contrasena, correo, idRol, preguntaSeguridad, respuestaSeguridad, estado) VALUES
-(4, 'rrhh', 'Roberto Antonio Chávez Martínez', '$2a$11$JmBeJIdePJ/tP418M9ny0.80LHQT9owQhqg9egsfe99S1s/lxMMZ2', 'roberto.chavez@empresa.com.sv', 2, '¿Cuál es su color favorito?', '$2a$11$bDbP22vJsZ3HkV3drabUuevYOalko4mGbjdBpY1dwgRrGekIg9Uv6', 'Activo'),
-(7, 'conta', 'Sofía Alejandra Quintanilla Mejía', '$2a$11$wydrRWNfeczPeEfV/1hT.e5UGUQiFWzXCnuyTP13GrZSRAarkwRRm', 'sofia.quintanilla@empresa.com.sv', 3, '¿En qué ciudad nació?', '$2a$11$W02rOZuxtUlTGZKlwEjRDOlMkCPhTb5JUb/wxKdX2m3w3qMC2AX0W', 'Activo');
+(11, 'rrhh', 'Roberto Antonio Chávez Martínez', '$2a$11$JmBeJIdePJ/tP418M9ny0.80LHQT9owQhqg9egsfe99S1s/lxMMZ2', 'roberto.chavez@empresa.com.sv', 2, '¿Cuál es su color favorito?', '$2a$11$bDbP22vJsZ3HkV3drabUuevYOalko4mGbjdBpY1dwgRrGekIg9Uv6', 'Activo'),
+(4, 'conta', 'Sofía Alejandra Quintanilla Mejía', '$2a$11$wydrRWNfeczPeEfV/1hT.e5UGUQiFWzXCnuyTP13GrZSRAarkwRRm', 'sofia.quintanilla@empresa.com.sv', 3, '¿En qué ciudad nació?', '$2a$11$W02rOZuxtUlTGZKlwEjRDOlMkCPhTb5JUb/wxKdX2m3w3qMC2AX0W', 'Activo'),
+(1, 'cmenjivar', 'Carlos Eduardo Menjívar Rivas', '$2a$11$d/rZzOgg2EvlpsZb/kuXoeHoDbYNG9gR0slAlYnANdzNH3yQkyCXW', 'cmenjivar@empresa.com.sv', 9, '¿Cuál es su comida favorita?', '$2a$11$JNzVi0y.X7YSCXmRVOW5zu/rvQOA8e5koy1xJaEYMhgFXFGz1hf2e', 'Activo'),
+(2, 'ahernandez', 'Ana Patricia Hernández López', '$2a$11$d/rZzOgg2EvlpsZb/kuXoeHoDbYNG9gR0slAlYnANdzNH3yQkyCXW', 'ahernandez@empresa.com.sv', 15, '¿Cuál es su comida favorita?', '$2a$11$JNzVi0y.X7YSCXmRVOW5zu/rvQOA8e5koy1xJaEYMhgFXFGz1hf2e', 'Activo'),
+(3, 'korellana', 'Karla Beatriz Orellana Cruz', '$2a$11$d/rZzOgg2EvlpsZb/kuXoeHoDbYNG9gR0slAlYnANdzNH3yQkyCXW', 'korellana@empresa.com.sv', 12, '¿Cuál es su comida favorita?', '$2a$11$JNzVi0y.X7YSCXmRVOW5zu/rvQOA8e5koy1xJaEYMhgFXFGz1hf2e', 'Activo'),
+(5, 'gescobar', 'Gabriela Isabel Escobar Salazar', '$2a$11$d/rZzOgg2EvlpsZb/kuXoeHoDbYNG9gR0slAlYnANdzNH3yQkyCXW', 'gescobar@empresa.com.sv', 6, '¿Cuál es su comida favorita?', '$2a$11$JNzVi0y.X7YSCXmRVOW5zu/rvQOA8e5koy1xJaEYMhgFXFGz1hf2e', 'Activo'),
+(6, 'dflores', 'Daniel Ernesto Flores Alvarado', '$2a$11$d/rZzOgg2EvlpsZb/kuXoeHoDbYNG9gR0slAlYnANdzNH3yQkyCXW', 'dflores@empresa.com.sv', 7, '¿Cuál es su comida favorita?', '$2a$11$JNzVi0y.X7YSCXmRVOW5zu/rvQOA8e5koy1xJaEYMhgFXFGz1hf2e', 'Activo'),
+(12, 'mportillo', 'María Fernanda Portillo Gómez', '$2a$11$d/rZzOgg2EvlpsZb/kuXoeHoDbYNG9gR0slAlYnANdzNH3yQkyCXW', 'mportillo@empresa.com.sv', 13, '¿Cuál es su comida favorita?', '$2a$11$JNzVi0y.X7YSCXmRVOW5zu/rvQOA8e5koy1xJaEYMhgFXFGz1hf2e', 'Activo'),
+(13, 'jramirez', 'José Luis Ramírez Aguilar', '$2a$11$d/rZzOgg2EvlpsZb/kuXoeHoDbYNG9gR0slAlYnANdzNH3yQkyCXW', 'jramirez@empresa.com.sv', 8, '¿Cuál es su comida favorita?', '$2a$11$JNzVi0y.X7YSCXmRVOW5zu/rvQOA8e5koy1xJaEYMhgFXFGz1hf2e', 'Activo'),
+(15, 'fmendoza', 'Fernando José Mendoza Pineda', '$2a$11$d/rZzOgg2EvlpsZb/kuXoeHoDbYNG9gR0slAlYnANdzNH3yQkyCXW', 'fmendoza@empresa.com.sv', 14, '¿Cuál es su comida favorita?', '$2a$11$JNzVi0y.X7YSCXmRVOW5zu/rvQOA8e5koy1xJaEYMhgFXFGz1hf2e', 'Activo'),
+(16, 'vsandoval', 'Valeria Nicole Sandoval Cortez', '$2a$11$d/rZzOgg2EvlpsZb/kuXoeHoDbYNG9gR0slAlYnANdzNH3yQkyCXW', 'vsandoval@empresa.com.sv', 5, '¿Cuál es su comida favorita?', '$2a$11$JNzVi0y.X7YSCXmRVOW5zu/rvQOA8e5koy1xJaEYMhgFXFGz1hf2e', 'Activo'),
+(17, 'oreyes', 'Oscar Armando Reyes Castillo', '$2a$11$d/rZzOgg2EvlpsZb/kuXoeHoDbYNG9gR0slAlYnANdzNH3yQkyCXW', 'oreyes@empresa.com.sv', 11, '¿Cuál es su comida favorita?', '$2a$11$JNzVi0y.X7YSCXmRVOW5zu/rvQOA8e5koy1xJaEYMhgFXFGz1hf2e', 'Activo'),
+(18, 'mguzman', 'Miguel Ángel Guzmán Peña', '$2a$11$d/rZzOgg2EvlpsZb/kuXoeHoDbYNG9gR0slAlYnANdzNH3yQkyCXW', 'mguzman@empresa.com.sv', 10, '¿Cuál es su comida favorita?', '$2a$11$JNzVi0y.X7YSCXmRVOW5zu/rvQOA8e5koy1xJaEYMhgFXFGz1hf2e', 'Activo'),
+(19, 'lcaceres', 'Lucía Carolina Cáceres Vides', '$2a$11$d/rZzOgg2EvlpsZb/kuXoeHoDbYNG9gR0slAlYnANdzNH3yQkyCXW', 'lcaceres@empresa.com.sv', 7, '¿Cuál es su comida favorita?', '$2a$11$JNzVi0y.X7YSCXmRVOW5zu/rvQOA8e5koy1xJaEYMhgFXFGz1hf2e', 'Activo'),
+(20, 'abonilla', 'Andrés Josué Bonilla Argueta', '$2a$11$d/rZzOgg2EvlpsZb/kuXoeHoDbYNG9gR0slAlYnANdzNH3yQkyCXW', 'abonilla@empresa.com.sv', 15, '¿Cuál es su comida favorita?', '$2a$11$JNzVi0y.X7YSCXmRVOW5zu/rvQOA8e5koy1xJaEYMhgFXFGz1hf2e', 'Activo');
 GO
 
+-- ---------------------------------------------------------------------
+-- 6.6  Asistencia (lunes a viernes desde hace dos meses hasta ayer)
+-- ---------------------------------------------------------------------
 -- Asistencia de demostración: lunes a viernes desde hace dos meses hasta ayer
 DECLARE @dia DATE = DATEFROMPARTS(YEAR(DATEADD(MONTH, -2, GETDATE())), MONTH(DATEADD(MONTH, -2, GETDATE())), 1);
 DECLARE @hasta DATE = DATEADD(DAY, -1, CAST(GETDATE() AS DATE));
@@ -983,25 +1107,27 @@ BEGIN
 END
 GO
 
--- Permisos laborales de demostración (los aprobados se reflejan en la asistencia mediante el procedimiento almacenado)
+-- ---------------------------------------------------------------------
+-- 6.7  Permisos laborales (los aprobados se reflejan en la asistencia mediante el procedimiento almacenado)
+-- ---------------------------------------------------------------------
 INSERT INTO permisoLaboral (idEmpleado, tipo, fechaInicio, fechaFin, motivo) VALUES
 (2, 'Con goce', DATEADD(DAY, -40, CAST(GETDATE() AS DATE)), DATEADD(DAY, -40, CAST(GETDATE() AS DATE)), 'Trámite personal en oficinas del DUI'),
 (3, 'Vacaciones', DATEADD(DAY, -35, CAST(GETDATE() AS DATE)), DATEADD(DAY, -31, CAST(GETDATE() AS DATE)), 'Vacaciones anuales'),
-(5, 'Incapacidad', DATEADD(DAY, -30, CAST(GETDATE() AS DATE)), DATEADD(DAY, -28, CAST(GETDATE() AS DATE)), 'Incapacidad médica por cuadro gripal'),
-(6, 'Sin goce', DATEADD(DAY, -28, CAST(GETDATE() AS DATE)), DATEADD(DAY, -27, CAST(GETDATE() AS DATE)), 'Asuntos familiares'),
-(8, 'Con goce', DATEADD(DAY, -25, CAST(GETDATE() AS DATE)), DATEADD(DAY, -25, CAST(GETDATE() AS DATE)), 'Cita médica'),
-(9, 'Vacaciones', DATEADD(DAY, -22, CAST(GETDATE() AS DATE)), DATEADD(DAY, -19, CAST(GETDATE() AS DATE)), 'Vacaciones'),
-(11, 'Con goce', DATEADD(DAY, -20, CAST(GETDATE() AS DATE)), DATEADD(DAY, -20, CAST(GETDATE() AS DATE)), 'Matrimonio de un familiar'),
-(12, 'Sin goce', DATEADD(DAY, -18, CAST(GETDATE() AS DATE)), DATEADD(DAY, -16, CAST(GETDATE() AS DATE)), 'Viaje personal'),
-(14, 'Incapacidad', DATEADD(DAY, -15, CAST(GETDATE() AS DATE)), DATEADD(DAY, -14, CAST(GETDATE() AS DATE)), 'Incapacidad por procedimiento dental'),
-(15, 'Con goce', DATEADD(DAY, -12, CAST(GETDATE() AS DATE)), DATEADD(DAY, -12, CAST(GETDATE() AS DATE)), 'Reunión escolar'),
-(17, 'Sin goce', DATEADD(DAY, -10, CAST(GETDATE() AS DATE)), DATEADD(DAY, -9, CAST(GETDATE() AS DATE)), 'Trámite migratorio'),
-(18, 'Vacaciones', DATEADD(DAY, -8, CAST(GETDATE() AS DATE)), DATEADD(DAY, -6, CAST(GETDATE() AS DATE)), 'Vacaciones'),
-(19, 'Con goce', DATEADD(DAY, -6, CAST(GETDATE() AS DATE)), DATEADD(DAY, -6, CAST(GETDATE() AS DATE)), 'Trámite bancario'),
-(10, 'Vacaciones', DATEADD(DAY, 10, CAST(GETDATE() AS DATE)), DATEADD(DAY, 14, CAST(GETDATE() AS DATE)), 'Vacaciones de fin de año'),
-(13, 'Con goce', DATEADD(DAY, 12, CAST(GETDATE() AS DATE)), DATEADD(DAY, 12, CAST(GETDATE() AS DATE)), 'Cita médica programada'),
-(16, 'Sin goce', DATEADD(DAY, 15, CAST(GETDATE() AS DATE)), DATEADD(DAY, 16, CAST(GETDATE() AS DATE)), 'Asunto personal'),
-(20, 'Con goce', DATEADD(DAY, 20, CAST(GETDATE() AS DATE)), DATEADD(DAY, 20, CAST(GETDATE() AS DATE)), 'Capacitación externa');
+(12, 'Incapacidad', DATEADD(DAY, -30, CAST(GETDATE() AS DATE)), DATEADD(DAY, -28, CAST(GETDATE() AS DATE)), 'Incapacidad médica por cuadro gripal'),
+(13, 'Sin goce', DATEADD(DAY, -28, CAST(GETDATE() AS DATE)), DATEADD(DAY, -27, CAST(GETDATE() AS DATE)), 'Asuntos familiares'),
+(6, 'Con goce', DATEADD(DAY, -25, CAST(GETDATE() AS DATE)), DATEADD(DAY, -25, CAST(GETDATE() AS DATE)), 'Cita médica'),
+(5, 'Vacaciones', DATEADD(DAY, -22, CAST(GETDATE() AS DATE)), DATEADD(DAY, -19, CAST(GETDATE() AS DATE)), 'Vacaciones'),
+(19, 'Con goce', DATEADD(DAY, -20, CAST(GETDATE() AS DATE)), DATEADD(DAY, -20, CAST(GETDATE() AS DATE)), 'Matrimonio de un familiar'),
+(20, 'Sin goce', DATEADD(DAY, -18, CAST(GETDATE() AS DATE)), DATEADD(DAY, -16, CAST(GETDATE() AS DATE)), 'Viaje personal'),
+(16, 'Incapacidad', DATEADD(DAY, -15, CAST(GETDATE() AS DATE)), DATEADD(DAY, -14, CAST(GETDATE() AS DATE)), 'Incapacidad por procedimiento dental'),
+(17, 'Con goce', DATEADD(DAY, -12, CAST(GETDATE() AS DATE)), DATEADD(DAY, -12, CAST(GETDATE() AS DATE)), 'Reunión escolar'),
+(10, 'Sin goce', DATEADD(DAY, -10, CAST(GETDATE() AS DATE)), DATEADD(DAY, -9, CAST(GETDATE() AS DATE)), 'Trámite migratorio'),
+(7, 'Vacaciones', DATEADD(DAY, -8, CAST(GETDATE() AS DATE)), DATEADD(DAY, -6, CAST(GETDATE() AS DATE)), 'Vacaciones'),
+(8, 'Con goce', DATEADD(DAY, -6, CAST(GETDATE() AS DATE)), DATEADD(DAY, -6, CAST(GETDATE() AS DATE)), 'Trámite bancario'),
+(18, 'Vacaciones', DATEADD(DAY, 10, CAST(GETDATE() AS DATE)), DATEADD(DAY, 14, CAST(GETDATE() AS DATE)), 'Vacaciones de fin de año'),
+(15, 'Con goce', DATEADD(DAY, 12, CAST(GETDATE() AS DATE)), DATEADD(DAY, 12, CAST(GETDATE() AS DATE)), 'Cita médica programada'),
+(9, 'Sin goce', DATEADD(DAY, 15, CAST(GETDATE() AS DATE)), DATEADD(DAY, 16, CAST(GETDATE() AS DATE)), 'Asunto personal'),
+(14, 'Con goce', DATEADD(DAY, 20, CAST(GETDATE() AS DATE)), DATEADD(DAY, 20, CAST(GETDATE() AS DATE)), 'Capacitación externa');
 EXEC sp_AprobarPermisoLaboral @idPermisoLaboral = 1, @idUsuario = 1;
 EXEC sp_AprobarPermisoLaboral @idPermisoLaboral = 2, @idUsuario = 1;
 EXEC sp_AprobarPermisoLaboral @idPermisoLaboral = 3, @idUsuario = 1;
@@ -1016,184 +1142,86 @@ UPDATE permisoLaboral SET estado = 'Rechazado', idUsuarioResuelve = 1, fechaReso
 EXEC sp_AprobarPermisoLaboral @idPermisoLaboral = 12, @idUsuario = 1;
 UPDATE permisoLaboral SET estado = 'Rechazado', idUsuarioResuelve = 1, fechaResolucion = GETDATE() WHERE idPermisoLaboral = 13;
 
+-- ---------------------------------------------------------------------
+-- 6.8  Acciones de personal e historial de salarios
+-- ---------------------------------------------------------------------
 INSERT INTO accionPersonal (idEmpleado, tipoAccion, fecha, descripcion, salarioNuevo, idDepartamentoNuevo, idCargoNuevo, fechaFin, estado, idUsuario) VALUES
 (2, 'Aumento salarial', '2024-01-01', 'Aumento por evaluación de desempeño', 620.0, NULL, NULL, NULL, 'Aplicada', 1),
-(5, 'Promoción', '2023-01-02', 'Promoción a Analista de Planillas', 980.0, 2, 5, NULL, 'Aplicada', 1),
-(11, 'Aumento salarial', '2024-06-01', 'Aumento por cumplimiento de metas de venta', 720.0, NULL, NULL, NULL, 'Aplicada', 1),
-(14, 'Aumento salarial', '2025-01-02', 'Aumento anual', 1350.0, NULL, NULL, NULL, 'Aplicada', 1),
-(13, 'Promoción', '2022-01-03', 'Promoción a Jefe de Tecnología', 2100.0, 5, 13, NULL, 'Aplicada', 1),
-(16, 'Traslado', '2021-03-01', 'Traslado desde Logística hacia Operaciones', 1100.0, 6, 16, NULL, 'Aplicada', 1),
-(8, 'Aumento salarial', '2024-03-01', 'Aumento por desempeño', 610.0, NULL, NULL, NULL, 'Aplicada', 1),
-(10, 'Aumento salarial', '2023-07-01', 'Aumento por resultados comerciales', 1500.0, NULL, NULL, NULL, 'Aplicada', 1),
 (3, 'Amonestación', '2024-09-10', 'Llamado de atención verbal por tardanzas reiteradas', NULL, NULL, NULL, NULL, 'Aplicada', 1),
-(12, 'Amonestación', '2025-02-12', 'Amonestación escrita por incumplimiento de entregables', NULL, NULL, NULL, NULL, 'Aplicada', 1),
-(17, 'Suspensión', '2024-11-04', 'Suspensión de 3 días por falta grave', NULL, NULL, NULL, '2024-11-06', 'Aplicada', 1),
-(19, 'Aumento salarial', '2025-03-01', 'Aumento por antigüedad', 590.0, NULL, NULL, NULL, 'Aplicada', 1),
-(18, 'Aumento salarial', '2025-04-01', 'Aumento por desempeño', 760.0, NULL, NULL, NULL, 'Aplicada', 1),
-(7, 'Aumento salarial', CAST(GETDATE() AS DATE), 'Ajuste por costo de vida', 1600.0, NULL, NULL, NULL, 'Pendiente', 1),
-(15, 'Promoción', CAST(GETDATE() AS DATE), 'Promoción a Desarrollador de Software', 1000.0, 5, 14, NULL, 'Pendiente', 1);
+(4, 'Aumento salarial', CAST(GETDATE() AS DATE), 'Ajuste por costo de vida', 1600.0, NULL, NULL, NULL, 'Pendiente', 1),
+(6, 'Aumento salarial', '2024-03-01', 'Aumento por desempeño', 610.0, NULL, NULL, NULL, 'Aplicada', 1),
+(7, 'Aumento salarial', '2025-04-01', 'Aumento por desempeño', 760.0, NULL, NULL, NULL, 'Aplicada', 1),
+(8, 'Aumento salarial', '2025-03-01', 'Aumento por antigüedad', 590.0, NULL, NULL, NULL, 'Aplicada', 1),
+(9, 'Traslado', '2021-03-01', 'Traslado desde Logística hacia Operaciones', 1100.0, 10, 16, NULL, 'Aplicada', 1),
+(10, 'Suspensión', '2024-11-04', 'Suspensión de 3 días por falta grave', NULL, NULL, NULL, '2024-11-06', 'Aplicada', 1),
+(12, 'Promoción', '2023-01-02', 'Promoción a Analista de Planillas', 980.0, 11, 20, NULL, 'Aplicada', 1),
+(15, 'Promoción', '2022-01-03', 'Promoción a Jefe de Tecnología', 2100.0, 14, 26, NULL, 'Aplicada', 1),
+(16, 'Aumento salarial', '2025-01-02', 'Aumento anual', 1350.0, NULL, NULL, NULL, 'Aplicada', 1),
+(17, 'Promoción', CAST(GETDATE() AS DATE), 'Promoción a Desarrollador de Software', 1000.0, 14, 27, NULL, 'Pendiente', 1),
+(18, 'Aumento salarial', '2023-07-01', 'Aumento por resultados comerciales', 1500.0, NULL, NULL, NULL, 'Aplicada', 1),
+(19, 'Aumento salarial', '2024-06-01', 'Aumento por cumplimiento de metas de venta', 720.0, NULL, NULL, NULL, 'Aplicada', 1),
+(20, 'Amonestación', '2025-02-12', 'Amonestación escrita por incumplimiento de entregables', NULL, NULL, NULL, NULL, 'Aplicada', 1);
 
+INSERT INTO historialSalario (idEmpleado, salarioAnterior, salarioNuevo, fecha, usuarioBd) VALUES
+(1, 2900.00, 3200.00, '2023-01-01', 'sistema'),
+(2, 560.00, 620.00, '2024-01-01', 'sistema'),
+(4, 1350.00, 1480.00, '2022-06-01', 'sistema'),
+(5, 1100.00, 1250.00, '2023-03-01', 'sistema'),
+(6, 560.00, 610.00, '2024-03-01', 'sistema'),
+(7, 700.00, 760.00, '2025-04-01', 'sistema'),
+(8, 540.00, 590.00, '2025-03-01', 'sistema'),
+(9, 950.00, 1100.00, '2021-03-01', 'sistema'),
+(11, 1500.00, 1650.00, '2022-01-01', 'sistema'),
+(12, 900.00, 980.00, '2023-01-02', 'sistema'),
+(15, 1900.00, 2100.00, '2022-01-03', 'sistema'),
+(16, 1250.00, 1350.00, '2025-01-02', 'sistema'),
+(18, 1350.00, 1500.00, '2023-07-01', 'sistema'),
+(19, 650.00, 720.00, '2024-06-01', 'sistema'),
+(20, 720.00, 780.00, '2023-05-01', 'sistema');
+
+-- ---------------------------------------------------------------------
+-- 6.9  Planilla: movimientos y préstamos
+-- ---------------------------------------------------------------------
 DECLARE @anioPrev SMALLINT = YEAR(DATEADD(MONTH, -1, GETDATE()));
 DECLARE @mesPrev TINYINT = MONTH(DATEADD(MONTH, -1, GETDATE()));
 INSERT INTO planillaMovimiento (idEmpleado, idTipoMovimiento, anio, mes, monto, descripcion, idUsuario) VALUES
-(10, 2, @anioPrev, @mesPrev, 350.00, 'Comisión por ventas del mes', 1),
-(11, 2, @anioPrev, @mesPrev, 210.50, 'Comisión por ventas del mes', 1),
-(12, 2, @anioPrev, @mesPrev, 180.00, 'Comisión por ventas del mes', 1),
-(10, 1, @anioPrev, @mesPrev, 100.00, 'Bono por cumplimiento de metas', 1),
-(5, 1, @anioPrev, @mesPrev, 75.00, 'Bono por desempeño', 1),
-(13, 1, @anioPrev, @mesPrev, 150.00, 'Bono por entrega de proyecto', 1),
-(14, 1, @anioPrev, @mesPrev, 100.00, 'Bono por desempeño', 1),
-(2, 4, @anioPrev, @mesPrev, 40.00, 'Viáticos por gestiones bancarias', 1),
-(16, 3, @anioPrev, @mesPrev, 60.00, 'Bonificación por turno extraordinario', 1),
-(18, 3, @anioPrev, @mesPrev, 45.00, 'Bonificación por despacho urgente', 1),
-(3, 5, @anioPrev, @mesPrev, 15.00, 'Descuento por uniforme', 1),
-(6, 6, @anioPrev, @mesPrev, 100.00, 'Anticipo de salario', 1),
-(8, 7, @anioPrev, @mesPrev, 5.00, 'Cuota sindical', 1),
-(9, 8, @anioPrev, @mesPrev, 22.50, 'Seguro médico privado', 1),
-(15, 6, @anioPrev, @mesPrev, 80.00, 'Anticipo de salario', 1),
-(17, 5, @anioPrev, @mesPrev, 12.00, 'Descuento por uniforme', 1);
+(2, 9, @anioPrev, @mesPrev, 40.00, 'Viáticos por gestiones bancarias', 1),
+(3, 13, @anioPrev, @mesPrev, 15.00, 'Descuento por uniforme', 1),
+(5, 18, @anioPrev, @mesPrev, 22.50, 'Seguro médico privado', 1),
+(6, 12, @anioPrev, @mesPrev, 5.00, 'Cuota sindical', 1),
+(7, 2, @anioPrev, @mesPrev, 45.00, 'Bonificación por despacho urgente', 1),
+(9, 2, @anioPrev, @mesPrev, 60.00, 'Bonificación por turno extraordinario', 1),
+(10, 13, @anioPrev, @mesPrev, 12.00, 'Descuento por uniforme', 1),
+(12, 5, @anioPrev, @mesPrev, 75.00, 'Bono por desempeño', 1),
+(13, 11, @anioPrev, @mesPrev, 100.00, 'Anticipo de salario', 1),
+(15, 5, @anioPrev, @mesPrev, 150.00, 'Bono por entrega de proyecto', 1),
+(16, 5, @anioPrev, @mesPrev, 100.00, 'Bono por desempeño', 1),
+(17, 11, @anioPrev, @mesPrev, 80.00, 'Anticipo de salario', 1),
+(18, 5, @anioPrev, @mesPrev, 100.00, 'Bono por cumplimiento de metas', 1),
+(18, 6, @anioPrev, @mesPrev, 350.00, 'Comisión por ventas del mes', 1),
+(19, 6, @anioPrev, @mesPrev, 210.50, 'Comisión por ventas del mes', 1),
+(20, 6, @anioPrev, @mesPrev, 180.00, 'Comisión por ventas del mes', 1);
 
 INSERT INTO prestamo (idEmpleado, monto, cuotaMensual, saldo, fechaOtorgado, descripcion) VALUES
+(1, 3000.00, 250.00, 1750.00, DATEADD(DAY, -180, DATEADD(MONTH, -2, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))), 'Préstamo para vehículo'),
 (2, 600.00, 50.00, 400.00, DATEADD(DAY, -20, DATEADD(MONTH, -2, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))), 'Préstamo personal'),
 (3, 300.00, 25.00, 175.00, DATEADD(DAY, -45, DATEADD(MONTH, -2, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))), 'Préstamo para útiles escolares'),
-(5, 1000.00, 80.00, 640.00, DATEADD(DAY, -70, DATEADD(MONTH, -2, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))), 'Préstamo personal'),
-(6, 500.00, 40.00, 300.00, DATEADD(DAY, -95, DATEADD(MONTH, -2, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))), 'Préstamo por emergencia médica'),
-(8, 400.00, 35.00, 210.00, DATEADD(DAY, -120, DATEADD(MONTH, -2, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))), 'Préstamo personal'),
-(9, 1500.00, 120.00, 900.00, DATEADD(DAY, -150, DATEADD(MONTH, -2, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))), 'Préstamo para vivienda'),
-(11, 350.00, 30.00, 200.00, DATEADD(DAY, -30, DATEADD(MONTH, -2, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))), 'Préstamo personal'),
-(12, 800.00, 65.00, 520.00, DATEADD(DAY, -60, DATEADD(MONTH, -2, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))), 'Préstamo para reparación de vehículo'),
-(14, 1200.00, 100.00, 700.00, DATEADD(DAY, -110, DATEADD(MONTH, -2, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))), 'Préstamo personal'),
-(15, 450.00, 40.00, 250.00, DATEADD(DAY, -25, DATEADD(MONTH, -2, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))), 'Préstamo por emergencia'),
-(16, 900.00, 75.00, 525.00, DATEADD(DAY, -80, DATEADD(MONTH, -2, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))), 'Préstamo para vivienda'),
-(17, 300.00, 25.00, 125.00, DATEADD(DAY, -140, DATEADD(MONTH, -2, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))), 'Préstamo personal'),
-(18, 700.00, 60.00, 480.00, DATEADD(DAY, -35, DATEADD(MONTH, -2, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))), 'Préstamo personal'),
-(19, 500.00, 40.00, 380.00, DATEADD(DAY, -15, DATEADD(MONTH, -2, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))), 'Préstamo por emergencia'),
-(1, 3000.00, 250.00, 1750.00, DATEADD(DAY, -180, DATEADD(MONTH, -2, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))), 'Préstamo para vehículo');
+(5, 1500.00, 120.00, 900.00, DATEADD(DAY, -150, DATEADD(MONTH, -2, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))), 'Préstamo para vivienda'),
+(6, 400.00, 35.00, 210.00, DATEADD(DAY, -120, DATEADD(MONTH, -2, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))), 'Préstamo personal'),
+(7, 700.00, 60.00, 480.00, DATEADD(DAY, -35, DATEADD(MONTH, -2, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))), 'Préstamo personal'),
+(8, 500.00, 40.00, 380.00, DATEADD(DAY, -15, DATEADD(MONTH, -2, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))), 'Préstamo por emergencia'),
+(9, 900.00, 75.00, 525.00, DATEADD(DAY, -80, DATEADD(MONTH, -2, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))), 'Préstamo para vivienda'),
+(10, 300.00, 25.00, 125.00, DATEADD(DAY, -140, DATEADD(MONTH, -2, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))), 'Préstamo personal'),
+(12, 1000.00, 80.00, 640.00, DATEADD(DAY, -70, DATEADD(MONTH, -2, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))), 'Préstamo personal'),
+(13, 500.00, 40.00, 300.00, DATEADD(DAY, -95, DATEADD(MONTH, -2, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))), 'Préstamo por emergencia médica'),
+(16, 1200.00, 100.00, 700.00, DATEADD(DAY, -110, DATEADD(MONTH, -2, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))), 'Préstamo personal'),
+(17, 450.00, 40.00, 250.00, DATEADD(DAY, -25, DATEADD(MONTH, -2, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))), 'Préstamo por emergencia'),
+(19, 350.00, 30.00, 200.00, DATEADD(DAY, -30, DATEADD(MONTH, -2, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))), 'Préstamo personal'),
+(20, 800.00, 65.00, 520.00, DATEADD(DAY, -60, DATEADD(MONTH, -2, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))), 'Préstamo para reparación de vehículo');
 
--- ---------- Datos de demostración adicionales (mínimo 15 registros por tabla) ----------
-INSERT INTO departamento (nombre, descripcion) VALUES
-('Legal', 'Asesoría jurídica y contratos'),
-('Auditoría Interna', 'Control interno y cumplimiento'),
-('Compras', 'Adquisiciones y proveedores'),
-('Mantenimiento', 'Mantenimiento de instalaciones y equipo'),
-('Seguridad Industrial', 'Prevención de riesgos y salud ocupacional'),
-('Control de Calidad', 'Aseguramiento y control de calidad'),
-('Capacitación', 'Formación y desarrollo del personal');
-INSERT INTO cargo (idDepartamento, nombre, salarioMinimo, salarioMaximo) VALUES
-(9, 'Asesor Legal', 1200.00, 2400.00),
-(10, 'Auditor Interno', 1000.00, 2000.00),
-(11, 'Encargado de Compras', 700.00, 1400.00),
-(12, 'Técnico Electricista', 450.00, 900.00),
-(13, 'Oficial de Seguridad', 500.00, 1000.00),
-(14, 'Inspector de Calidad', 550.00, 1100.00),
-(15, 'Instructor de Capacitación', 600.00, 1200.00);
-INSERT INTO horario (nombre, horaEntrada, horaSalida, minutosTolerancia, horasAlmuerzo) VALUES
-('Turno nocturno', '19:00', '23:30', 10, 0.50),
-('Fin de semana', '08:00', '14:00', 10, 0.00),
-('Seguridad matutino', '06:00', '14:00', 10, 0.50),
-('Seguridad vespertino', '14:00', '22:00', 10, 0.50),
-('Atención al cliente', '09:00', '18:00', 10, 1.00),
-('Taller', '07:30', '16:30', 10, 1.00),
-('Corrido sin almuerzo', '08:00', '16:00', 10, 0.00),
-('Medio tiempo tarde', '13:00', '18:00', 10, 0.00),
-('Flexible administrativo', '09:00', '18:00', 15, 1.00);
-INSERT INTO planilla (nombre, descripcion) VALUES
-('Planilla Gerencial', 'Cargos de dirección y gerencia'),
-('Planilla de Seguridad', 'Personal de seguridad y vigilancia'),
-('Planilla de Mantenimiento', 'Personal técnico de mantenimiento'),
-('Planilla de Calidad', 'Control y aseguramiento de calidad'),
-('Planilla Temporal', 'Personal contratado por período definido'),
-('Planilla de Pasantes', 'Practicantes y pasantes'),
-('Planilla de Proyectos', 'Personal asignado a proyectos'),
-('Planilla de Bodega', 'Personal de bodega y despacho'),
-('Planilla de Transporte', 'Motoristas y personal de transporte'),
-('Planilla de Capacitación', 'Instructores y formadores'),
-('Planilla de Compras', 'Personal de compras y proveedores'),
-('Planilla Legal', 'Personal del área legal');
-INSERT INTO rol (nombre, descripcion) VALUES
-('Gerente', 'Consulta general y reportes'),
-('Jefe de Recursos Humanos', 'Gestión completa del personal'),
-('Auxiliar Contable', 'Apoyo en planilla y movimientos'),
-('Supervisor', 'Consulta de personal y asistencia'),
-('Consulta', 'Solo consulta de empleados'),
-('Auditor', 'Consulta de planilla, reportes y bitácora'),
-('Planillero', 'Genera planillas y boletas'),
-('Recepcionista', 'Registro de asistencia'),
-('Analista de Personal', 'Empleados y acciones de personal'),
-('Secretaria', 'Permisos y asistencia'),
-('Coordinador', 'Asistencia y permisos del equipo'),
-('Soporte', 'Consulta de bitácora y usuarios');
-INSERT INTO rolPermiso (idRol, idPermisoSistema) SELECT 4, idPermisoSistema FROM permisoSistema WHERE codigo IN ('EMPLEADOS_VER', 'REPORTES_VER', 'PLANILLA_VER');
-INSERT INTO rolPermiso (idRol, idPermisoSistema) SELECT 5, idPermisoSistema FROM permisoSistema WHERE codigo IN ('DEPARTAMENTOS_VER', 'DEPARTAMENTOS_GESTIONAR', 'HORARIOS_VER', 'HORARIOS_GESTIONAR', 'EMPLEADOS_VER', 'EMPLEADOS_GESTIONAR', 'ASISTENCIA_VER', 'ASISTENCIA_GESTIONAR', 'PERMISOS_VER', 'PERMISOS_GESTIONAR', 'ACCIONES_VER', 'ACCIONES_GESTIONAR', 'REPORTES_VER');
-INSERT INTO rolPermiso (idRol, idPermisoSistema) SELECT 6, idPermisoSistema FROM permisoSistema WHERE codigo IN ('EMPLEADOS_VER', 'PLANILLA_VER', 'PLANILLA_GESTIONAR');
-INSERT INTO rolPermiso (idRol, idPermisoSistema) SELECT 7, idPermisoSistema FROM permisoSistema WHERE codigo IN ('EMPLEADOS_VER', 'ASISTENCIA_VER', 'PERMISOS_VER');
-INSERT INTO rolPermiso (idRol, idPermisoSistema) SELECT 8, idPermisoSistema FROM permisoSistema WHERE codigo IN ('EMPLEADOS_VER');
-INSERT INTO rolPermiso (idRol, idPermisoSistema) SELECT 9, idPermisoSistema FROM permisoSistema WHERE codigo IN ('PLANILLA_VER', 'REPORTES_VER', 'BITACORA_VER', 'EMPLEADOS_VER');
-INSERT INTO rolPermiso (idRol, idPermisoSistema) SELECT 10, idPermisoSistema FROM permisoSistema WHERE codigo IN ('PLANILLA_VER', 'PLANILLA_GESTIONAR', 'BOLETAS_VER');
-INSERT INTO rolPermiso (idRol, idPermisoSistema) SELECT 11, idPermisoSistema FROM permisoSistema WHERE codigo IN ('ASISTENCIA_VER', 'ASISTENCIA_GESTIONAR');
-INSERT INTO rolPermiso (idRol, idPermisoSistema) SELECT 12, idPermisoSistema FROM permisoSistema WHERE codigo IN ('EMPLEADOS_VER', 'EMPLEADOS_GESTIONAR', 'ACCIONES_VER', 'ACCIONES_GESTIONAR');
-INSERT INTO rolPermiso (idRol, idPermisoSistema) SELECT 13, idPermisoSistema FROM permisoSistema WHERE codigo IN ('PERMISOS_VER', 'PERMISOS_GESTIONAR', 'ASISTENCIA_VER');
-INSERT INTO rolPermiso (idRol, idPermisoSistema) SELECT 14, idPermisoSistema FROM permisoSistema WHERE codigo IN ('ASISTENCIA_VER', 'ASISTENCIA_GESTIONAR', 'PERMISOS_VER');
-INSERT INTO rolPermiso (idRol, idPermisoSistema) SELECT 15, idPermisoSistema FROM permisoSistema WHERE codigo IN ('BITACORA_VER', 'USUARIOS_GESTIONAR');
--- Usuarios de demostración adicionales (contraseña Demo123*, respuesta de seguridad: demo)
-INSERT INTO usuario (idEmpleado, nombreUsuario, nombreCompleto, contrasena, correo, idRol, preguntaSeguridad, respuestaSeguridad, estado) VALUES
-(1, 'cmenjivar', 'Carlos Eduardo Menjívar Rivas', '$2a$11$d/rZzOgg2EvlpsZb/kuXoeHoDbYNG9gR0slAlYnANdzNH3yQkyCXW', 'cmenjivar@empresa.com.sv', 4, '¿Cuál es su comida favorita?', '$2a$11$JNzVi0y.X7YSCXmRVOW5zu/rvQOA8e5koy1xJaEYMhgFXFGz1hf2e', 'Activo'),
-(2, 'ahernandez', 'Ana Patricia Hernández López', '$2a$11$d/rZzOgg2EvlpsZb/kuXoeHoDbYNG9gR0slAlYnANdzNH3yQkyCXW', 'ahernandez@empresa.com.sv', 7, '¿Cuál es su comida favorita?', '$2a$11$JNzVi0y.X7YSCXmRVOW5zu/rvQOA8e5koy1xJaEYMhgFXFGz1hf2e', 'Activo'),
-(3, 'korellana', 'Karla Beatriz Orellana Cruz', '$2a$11$d/rZzOgg2EvlpsZb/kuXoeHoDbYNG9gR0slAlYnANdzNH3yQkyCXW', 'korellana@empresa.com.sv', 11, '¿Cuál es su comida favorita?', '$2a$11$JNzVi0y.X7YSCXmRVOW5zu/rvQOA8e5koy1xJaEYMhgFXFGz1hf2e', 'Activo'),
-(5, 'mportillo', 'María Fernanda Portillo Gómez', '$2a$11$d/rZzOgg2EvlpsZb/kuXoeHoDbYNG9gR0slAlYnANdzNH3yQkyCXW', 'mportillo@empresa.com.sv', 13, '¿Cuál es su comida favorita?', '$2a$11$JNzVi0y.X7YSCXmRVOW5zu/rvQOA8e5koy1xJaEYMhgFXFGz1hf2e', 'Activo'),
-(6, 'jramirez', 'José Luis Ramírez Aguilar', '$2a$11$d/rZzOgg2EvlpsZb/kuXoeHoDbYNG9gR0slAlYnANdzNH3yQkyCXW', 'jramirez@empresa.com.sv', 14, '¿Cuál es su comida favorita?', '$2a$11$JNzVi0y.X7YSCXmRVOW5zu/rvQOA8e5koy1xJaEYMhgFXFGz1hf2e', 'Activo'),
-(8, 'dflores', 'Daniel Ernesto Flores Alvarado', '$2a$11$d/rZzOgg2EvlpsZb/kuXoeHoDbYNG9gR0slAlYnANdzNH3yQkyCXW', 'dflores@empresa.com.sv', 8, '¿Cuál es su comida favorita?', '$2a$11$JNzVi0y.X7YSCXmRVOW5zu/rvQOA8e5koy1xJaEYMhgFXFGz1hf2e', 'Activo'),
-(9, 'gescobar', 'Gabriela Isabel Escobar Salazar', '$2a$11$d/rZzOgg2EvlpsZb/kuXoeHoDbYNG9gR0slAlYnANdzNH3yQkyCXW', 'gescobar@empresa.com.sv', 6, '¿Cuál es su comida favorita?', '$2a$11$JNzVi0y.X7YSCXmRVOW5zu/rvQOA8e5koy1xJaEYMhgFXFGz1hf2e', 'Activo'),
-(10, 'mguzman', 'Miguel Ángel Guzmán Peña', '$2a$11$d/rZzOgg2EvlpsZb/kuXoeHoDbYNG9gR0slAlYnANdzNH3yQkyCXW', 'mguzman@empresa.com.sv', 5, '¿Cuál es su comida favorita?', '$2a$11$JNzVi0y.X7YSCXmRVOW5zu/rvQOA8e5koy1xJaEYMhgFXFGz1hf2e', 'Activo'),
-(11, 'lcaceres', 'Lucía Carolina Cáceres Vides', '$2a$11$d/rZzOgg2EvlpsZb/kuXoeHoDbYNG9gR0slAlYnANdzNH3yQkyCXW', 'lcaceres@empresa.com.sv', 8, '¿Cuál es su comida favorita?', '$2a$11$JNzVi0y.X7YSCXmRVOW5zu/rvQOA8e5koy1xJaEYMhgFXFGz1hf2e', 'Activo'),
-(12, 'abonilla', 'Andrés Josué Bonilla Argueta', '$2a$11$d/rZzOgg2EvlpsZb/kuXoeHoDbYNG9gR0slAlYnANdzNH3yQkyCXW', 'abonilla@empresa.com.sv', 7, '¿Cuál es su comida favorita?', '$2a$11$JNzVi0y.X7YSCXmRVOW5zu/rvQOA8e5koy1xJaEYMhgFXFGz1hf2e', 'Activo'),
-(13, 'fmendoza', 'Fernando José Mendoza Pineda', '$2a$11$d/rZzOgg2EvlpsZb/kuXoeHoDbYNG9gR0slAlYnANdzNH3yQkyCXW', 'fmendoza@empresa.com.sv', 15, '¿Cuál es su comida favorita?', '$2a$11$JNzVi0y.X7YSCXmRVOW5zu/rvQOA8e5koy1xJaEYMhgFXFGz1hf2e', 'Activo'),
-(14, 'vsandoval', 'Valeria Nicole Sandoval Cortez', '$2a$11$d/rZzOgg2EvlpsZb/kuXoeHoDbYNG9gR0slAlYnANdzNH3yQkyCXW', 'vsandoval@empresa.com.sv', 9, '¿Cuál es su comida favorita?', '$2a$11$JNzVi0y.X7YSCXmRVOW5zu/rvQOA8e5koy1xJaEYMhgFXFGz1hf2e', 'Activo'),
-(15, 'oreyes', 'Oscar Armando Reyes Castillo', '$2a$11$d/rZzOgg2EvlpsZb/kuXoeHoDbYNG9gR0slAlYnANdzNH3yQkyCXW', 'oreyes@empresa.com.sv', 10, '¿Cuál es su comida favorita?', '$2a$11$JNzVi0y.X7YSCXmRVOW5zu/rvQOA8e5koy1xJaEYMhgFXFGz1hf2e', 'Activo');
-INSERT INTO tipoAsistencia (codigo, nombre, descripcion, descuentaDia, requiereHoras) VALUES
-('FER', 'Feriado / asueto', 'Día feriado pagado', 0, 0),
-('TEL', 'Teletrabajo', 'Jornada realizada en modalidad remota', 0, 1),
-('MIS', 'Misión oficial', 'Trabajo fuera de la oficina', 0, 0),
-('CAP', 'Capacitación', 'Asistencia a capacitación', 0, 1),
-('LMA', 'Licencia de maternidad', 'Licencia por maternidad', 0, 0),
-('LPA', 'Licencia de paternidad', 'Licencia por paternidad', 0, 0),
-('DUE', 'Permiso por duelo', 'Fallecimiento de un familiar', 0, 0),
-('DCO', 'Descanso compensatorio', 'Descanso por trabajo en día de asueto', 0, 0);
-INSERT INTO tipoMovimiento (nombre, naturaleza, gravable) VALUES
-('Aguinaldo', 'Ingreso', 0),
-('Bono de transporte', 'Ingreso', 1),
-('Subsidio de alimentación', 'Ingreso', 0),
-('Pensión alimenticia', 'Deducción', 1),
-('Préstamo bancario (libranza)', 'Deducción', 1),
-('Seguro de vida', 'Deducción', 1),
-('Ajuste a favor de la empresa', 'Deducción', 1),
-('Reintegro de gastos', 'Ingreso', 0),
-('Bono de antigüedad', 'Ingreso', 1);
-INSERT INTO parametroLey (codigo, descripcion, valor) VALUES
-('INSAFORP_PATRONAL', '(Informativo) INSAFORP - aporte patronal', 0.01),
-('DIAS_VACACIONES', '(Informativo) Días de vacaciones anuales', 15),
-('RECARGO_VACACIONES', '(Informativo) Recargo sobre el salario de vacaciones', 0.3),
-('HORAS_SEMANA', '(Informativo) Horas de la jornada semanal diurna', 44),
-('LIMITE_CUOTA_PRESTAMO', '(Informativo) Porcentaje máximo del salario para cuotas de préstamo', 0.2),
-('EDAD_MINIMA', '(Informativo) Edad mínima para laborar', 18),
-('EDAD_MAXIMA', '(Informativo) Edad máxima registrada en el sistema', 75),
-('MESES_AGUINALDO', '(Informativo) Meses de antigüedad para el primer aguinaldo', 12);
-INSERT INTO historialSalario (idEmpleado, salarioAnterior, salarioNuevo, fecha, usuarioBd) VALUES
-(2, 560.00, 620.00, '2024-01-01', 'sistema'),
-(5, 900.00, 980.00, '2023-01-02', 'sistema'),
-(11, 650.00, 720.00, '2024-06-01', 'sistema'),
-(14, 1250.00, 1350.00, '2025-01-02', 'sistema'),
-(13, 1900.00, 2100.00, '2022-01-03', 'sistema'),
-(16, 950.00, 1100.00, '2021-03-01', 'sistema'),
-(8, 560.00, 610.00, '2024-03-01', 'sistema'),
-(10, 1350.00, 1500.00, '2023-07-01', 'sistema'),
-(19, 540.00, 590.00, '2025-03-01', 'sistema'),
-(18, 700.00, 760.00, '2025-04-01', 'sistema'),
-(1, 2900.00, 3200.00, '2023-01-01', 'sistema'),
-(4, 1500.00, 1650.00, '2022-01-01', 'sistema'),
-(7, 1350.00, 1480.00, '2022-06-01', 'sistema'),
-(9, 1100.00, 1250.00, '2023-03-01', 'sistema'),
-(12, 720.00, 780.00, '2023-05-01', 'sistema');
+-- ---------------------------------------------------------------------
+-- 6.10  Bitácora
+-- ---------------------------------------------------------------------
 INSERT INTO bitacora (nivel, nombreUsuario, modulo, mensaje, fecha) VALUES
 ('INFO', 'demo', 'Login', 'Inicio de sesión correcto', DATEADD(HOUR, -5, GETDATE())),
 ('INFO', 'demo', 'Empleados', 'Registro creado', DATEADD(HOUR, -10, GETDATE())),
