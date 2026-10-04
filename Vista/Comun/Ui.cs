@@ -6,7 +6,7 @@ namespace Vista.Comun
     /// <summary>Fábrica de controles con el estilo del sistema, usada por los formularios construidos en código (diálogos, módulos especiales).</summary>
     public static class Ui
     {
-        public static Label Etiqueta(string texto, int x, int y, int ancho = 300, bool negrita = true, string nombre = null)
+        public static Label Etiqueta(string texto, int x, int y, int ancho = 200, bool negrita = true, string nombre = null)
         {
             return new Label
             {
