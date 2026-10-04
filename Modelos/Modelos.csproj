@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <RootNamespace>Modelos</RootNamespace>
+    <AssemblyName>Modelos</AssemblyName>
+    <LangVersion>latest</LangVersion>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.IO.Compression" />
+    <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+    <!-- El script de la base de datos viaja dentro del ensamblado para que la aplicación pueda crear la BD -->
+    <EmbeddedResource Include="..\BaseDatos\PlanillaRH.sql" LogicalName="PlanillaRH.sql" />
+  </ItemGroup>
+
+</Project>
