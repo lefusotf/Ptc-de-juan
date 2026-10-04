@@ -47,7 +47,7 @@ namespace Vista.Configuracion
             txtDireccion = Ui.Caja("txtDireccion", 20, 160, 450, 250, ModoEntrada.Libre);
             txtTelefono = new CajaTexto { Name = "txtTelefono", Location = new Point(20, 220), Size = new Size(215, 28), Mascara = "####-####", MaxLength = 9 };
             txtCorreo = Ui.Caja("txtCorreo", 255, 220, 215, 100, ModoEntrada.Correo);
-            picLogo = new PictureBox { Name = "picLogo", Location = new Point(500, 40), Size = new Size(150, 150), BorderStyle = BorderStyle.FixedSingle, SizeMode = PictureBoxSizeMode.Zoom, BackColor = Color.FromArgb(247, 250, 249) };
+            picLogo = new PictureBox { Name = "picLogo", Location = new Point(500, 40), Size = new Size(150, 150), BorderStyle = BorderStyle.FixedSingle, SizeMode = PictureBoxSizeMode.Zoom, BackColor = Color.FromArgb(248, 247, 254) };
             btnLogo = Ui.Boton("btnLogo", "Cambiar logotipo", Tema.PrimarioOscuro, 500, 200, 170, 34);
             btnQuitarLogo = Ui.Boton("btnQuitarLogo", "Quitar logotipo", Tema.Neutro, 500, 242, 170, 34);
             btnGuardarEmpresa = Ui.Boton("btnGuardarEmpresa", "Guardar datos de la empresa", Tema.Primario, 20, 290, 260, 42);

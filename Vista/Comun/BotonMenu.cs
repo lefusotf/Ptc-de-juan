@@ -41,8 +41,8 @@ namespace Vista.Comun
             Cursor = Cursors.Hand;
             ColorFondo = Tema.Lateral;
             ColorHover = Tema.LateralHover;
-            ColorActivo = Color.FromArgb(18, 98, 92);
-            ColorTexto = Color.FromArgb(203, 225, 222);
+            ColorActivo = Color.FromArgb(74, 50, 190);
+            ColorTexto = Color.FromArgb(214, 210, 245);
             ColorTextoActivo = Color.White;
             ColorBarra = Tema.Acento;
             Font = new Font("Segoe UI", 10.5F);

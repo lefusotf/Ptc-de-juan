@@ -49,7 +49,7 @@ namespace Vista.Conexion
             btnContinuar = Ui.Boton("btnContinuar", "Guardar y continuar", Tema.Primario, 434, 342, 176);
             btnSalir = Ui.Boton("btnSalir", "Salir del sistema", Tema.Neutro, 434, 584, 176, 34);
             lblEstado = Ui.Etiqueta("Sin probar", 30, 396, 580, true, "lblEstado");
-            txtRegistro = new TextBox { Name = "txtRegistro", Location = new Point(30, 424), Size = new Size(580, 150), Multiline = true, ReadOnly = true, ScrollBars = ScrollBars.Vertical, BackColor = Color.FromArgb(247, 250, 249), Font = new Font("Consolas", 9F) };
+            txtRegistro = new TextBox { Name = "txtRegistro", Location = new Point(30, 424), Size = new Size(580, 150), Multiline = true, ReadOnly = true, ScrollBars = ScrollBars.Vertical, BackColor = Color.FromArgb(248, 247, 254), Font = new Font("Consolas", 9F) };
 
             txtServidor.TabIndex = 0; rbWindows.TabIndex = 1; rbSql.TabIndex = 2; txtUsuario.TabIndex = 3; txtContrasena.TabIndex = 4;
             txtBaseDatos.TabIndex = 5; btnProbar.TabIndex = 6; btnCrear.TabIndex = 7; btnContinuar.TabIndex = 8; btnSalir.TabIndex = 9;

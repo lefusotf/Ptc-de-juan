@@ -32,9 +32,9 @@ namespace Vista.Comun
             g.RowTemplate.Height = 28;
             g.DefaultCellStyle.Font = new Font("Segoe UI", 9F);
             g.DefaultCellStyle.ForeColor = Tema.Texto;
-            g.DefaultCellStyle.SelectionBackColor = Color.FromArgb(204, 240, 235);
+            g.DefaultCellStyle.SelectionBackColor = Color.FromArgb(221, 214, 252);
             g.DefaultCellStyle.SelectionForeColor = Tema.Texto;
-            g.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(247, 250, 249);
+            g.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(248, 247, 254);
             g.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
             g.ScrollBars = ScrollBars.Both;
         }

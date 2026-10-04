@@ -84,7 +84,7 @@ namespace Vista.Login
             //
             this.lblLema.BackColor = System.Drawing.Color.Transparent;
             this.lblLema.Font = new System.Drawing.Font("Segoe UI", 11F);
-            this.lblLema.ForeColor = System.Drawing.Color.FromArgb(214, 240, 236);
+            this.lblLema.ForeColor = System.Drawing.Color.FromArgb(225, 220, 250);
             this.lblLema.Location = new System.Drawing.Point(38, 300);
             this.lblLema.Name = "lblLema";
             this.lblLema.Size = new System.Drawing.Size(320, 150);

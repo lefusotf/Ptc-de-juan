@@ -17,8 +17,8 @@ namespace Vista.Dashboard
     {
         private static readonly Color[] Paleta =
         {
-            Color.FromArgb(15, 118, 110), Color.FromArgb(14, 165, 233), Color.FromArgb(245, 158, 11), Color.FromArgb(139, 92, 246),
-            Color.FromArgb(236, 72, 153), Color.FromArgb(34, 197, 94), Color.FromArgb(239, 68, 68), Color.FromArgb(100, 116, 139)
+            Color.FromArgb(91, 63, 224), Color.FromArgb(14, 165, 233), Color.FromArgb(255, 176, 59), Color.FromArgb(236, 72, 153),
+            Color.FromArgb(16, 185, 129), Color.FromArgb(225, 29, 72), Color.FromArgb(79, 70, 229), Color.FromArgb(100, 106, 140)
         };
 
         private Label[] _valores = new Label[5];

@@ -36,11 +36,11 @@ namespace Modelos.Reportes
                     "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><styleSheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\">" +
                     "<numFmts count=\"1\"><numFmt numFmtId=\"164\" formatCode=\"dd/mm/yyyy\"/></numFmts>" +
                     "<fonts count=\"4\"><font><sz val=\"10\"/><name val=\"Calibri\"/></font><font><b/><sz val=\"10\"/><color rgb=\"FFFFFFFF\"/><name val=\"Calibri\"/></font>" +
-                    "<font><b/><sz val=\"14\"/><color rgb=\"FF0F766E\"/><name val=\"Calibri\"/></font><font><i/><sz val=\"10\"/><color rgb=\"FF64748B\"/><name val=\"Calibri\"/></font></fonts>" +
+                    "<font><b/><sz val=\"14\"/><color rgb=\"FF5B3FE0\"/><name val=\"Calibri\"/></font><font><i/><sz val=\"10\"/><color rgb=\"FF6E6C91\"/><name val=\"Calibri\"/></font></fonts>" +
                     "<fills count=\"3\"><fill><patternFill patternType=\"none\"/></fill><fill><patternFill patternType=\"gray125\"/></fill>" +
-                    "<fill><patternFill patternType=\"solid\"><fgColor rgb=\"FF0F766E\"/></patternFill></fill></fills>" +
+                    "<fill><patternFill patternType=\"solid\"><fgColor rgb=\"FF5B3FE0\"/></patternFill></fill></fills>" +
                     "<borders count=\"2\"><border><left/><right/><top/><bottom/><diagonal/></border>" +
-                    "<border><left style=\"thin\"><color rgb=\"FFE2E8F0\"/></left><right style=\"thin\"><color rgb=\"FFE2E8F0\"/></right><top style=\"thin\"><color rgb=\"FFE2E8F0\"/></top><bottom style=\"thin\"><color rgb=\"FFE2E8F0\"/></bottom><diagonal/></border></borders>" +
+                    "<border><left style=\"thin\"><color rgb=\"FFE2E0F2\"/></left><right style=\"thin\"><color rgb=\"FFE2E0F2\"/></right><top style=\"thin\"><color rgb=\"FFE2E0F2\"/></top><bottom style=\"thin\"><color rgb=\"FFE2E0F2\"/></bottom><diagonal/></border></borders>" +
                     "<cellStyleXfs count=\"1\"><xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\"/></cellStyleXfs>" +
                     "<cellXfs count=\"7\"><xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"1\" xfId=\"0\" applyBorder=\"1\"/>" +                      // 0 texto
                     "<xf numFmtId=\"0\" fontId=\"1\" fillId=\"2\" borderId=\"1\" xfId=\"0\" applyFont=\"1\" applyFill=\"1\" applyBorder=\"1\"/>" +            // 1 encabezado
