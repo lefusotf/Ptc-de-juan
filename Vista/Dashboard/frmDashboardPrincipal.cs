@@ -179,7 +179,7 @@ namespace Vista.Dashboard
 
         private void AjustarAnchoBotones()
         {
-            int ancho = flpMenu.ClientSize.Width - 2;
+            int ancho = flpMenu.Width - SystemInformation.VerticalScrollBarWidth - 4;   // deja espacio para la barra de desplazamiento vertical
             if (ancho < 40) return;
             foreach (BotonMenu b in Botones()) if (b != btnAyuda && b != btnSalir) b.Width = ancho;
         }
