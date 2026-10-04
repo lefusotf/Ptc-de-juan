@@ -34,7 +34,7 @@ namespace Vista.Dashboard
         private Chart CrearGrafico(string nombre, string titulo, SeriesChartType tipo, TableLayoutPanel destino, int col, int fila)
         {
             PanelTarjeta card = new PanelTarjeta { Dock = DockStyle.Fill, Margin = new Padding(col == 0 ? 0 : 6, fila == 0 ? 0 : 6, col == 1 ? 0 : 6, fila == 1 ? 0 : 6), Padding = new Padding(10), Name = "pnl" + nombre };
-            Chart chart = new Chart { Name = nombre, Dock = DockStyle.Fill, BackColor = Color.White };
+            Chart chart = new GraficoSeguro { Name = nombre, Dock = DockStyle.Fill, BackColor = Color.White };
             ChartArea area = new ChartArea("area") { BackColor = Color.White };
             area.AxisX.MajorGrid.Enabled = false;
             area.AxisY.MajorGrid.LineColor = Tema.Borde;
