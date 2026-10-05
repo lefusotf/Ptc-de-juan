@@ -17,7 +17,6 @@ namespace Vista.Login
         private int _intentos;
         private int _idUsuario;
 
-        private Panel pnlPaso1, pnlPaso2;
 
         public frmRecuperarContrasena()
         {
@@ -80,6 +79,16 @@ namespace Vista.Login
             {
                 Mensajes.Error("Recuperación", ex, "restablecer la contraseña");
             }
+        }
+
+        private void btnCancelar1_Click(object sender, EventArgs e)
+        {
+            DialogResult = DialogResult.Cancel;
+        }
+
+        private void btnCancelar2_Click(object sender, EventArgs e)
+        {
+            DialogResult = DialogResult.Cancel;
         }
     }
 }

@@ -26,6 +26,8 @@ namespace Vista.ProcesoPlanilla
         public frmPlanillaMensual()
         {
             InitializeComponent();
+            GridUtil.Estilizar(dgvPlanillas);
+            GridUtil.Estilizar(dgvDetalle);
             Load += frmPlanillaMensual_Load;
         }
 
@@ -182,6 +184,36 @@ namespace Vista.ProcesoPlanilla
                 Mensajes.Exito("La planilla en borrador se eliminó correctamente.");
             }
             catch (Exception ex) { Mensajes.Error("Planilla mensual", ex, "eliminar la planilla"); }
+        }
+
+        private void btnBuscarPlanilla_Click(object sender, EventArgs e)
+        {
+            pagPlanillas.Reiniciar(); CargarPlanillas(null);
+        }
+
+        private void btnBuscarDetalle_Click(object sender, EventArgs e)
+        {
+            pagDetalle.Reiniciar(); CargarDetalle();
+        }
+
+        private void txtBuscarPlanilla_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter) { e.SuppressKeyPress = true; pagPlanillas.Reiniciar(); CargarPlanillas(null); }
+        }
+
+        private void txtBuscarDetalle_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter) { e.SuppressKeyPress = true; pagDetalle.Reiniciar(); CargarDetalle(); }
+        }
+
+        private void pagPlanillas_PaginaCambiada(object sender, EventArgs e)
+        {
+            CargarPlanillas(null);
+        }
+
+        private void pagDetalle_PaginaCambiada(object sender, EventArgs e)
+        {
+            CargarDetalle();
         }
     }
 }

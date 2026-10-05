@@ -156,5 +156,15 @@ namespace Vista.Conexion
             }
             finally { Ocupado(false); }
         }
+
+        private void rbWindows_CheckedChanged(object sender, EventArgs e)
+        {
+            AplicarModo();
+        }
+
+        private void btnSalir_Click(object sender, EventArgs e)
+        {
+            DialogResult = DialogResult.Cancel;
+        }
     }
 }

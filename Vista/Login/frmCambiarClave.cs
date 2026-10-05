@@ -16,6 +16,7 @@ namespace Vista.Login
         {
             _obligatorio = obligatorio;
             InitializeComponent();
+            tip.SetToolTip(btnCancelar, _obligatorio ? "Cancela y vuelve a la pantalla de inicio de sesión." : "Cierra esta ventana sin cambios.");
         }
 
         
@@ -45,6 +46,11 @@ namespace Vista.Login
             {
                 Mensajes.Error("Seguridad", ex, "cambiar la contraseña");
             }
+        }
+
+        private void btnCancelar_Click(object sender, EventArgs e)
+        {
+            DialogResult = DialogResult.Cancel;
         }
     }
 }

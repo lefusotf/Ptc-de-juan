@@ -101,5 +101,15 @@ namespace Vista.Configuracion
                 Mensajes.Error("Configuración", ex, "guardar la configuración inicial");
             }
         }
+
+        private void btnQuitarLogo_Click(object sender, EventArgs e)
+        {
+            _logo = null; picLogo.Image = null;
+        }
+
+        private void btnSalir_Click(object sender, EventArgs e)
+        {
+            DialogResult = DialogResult.Cancel;
+        }
     }
 }

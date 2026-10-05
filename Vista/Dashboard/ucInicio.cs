@@ -21,19 +21,29 @@ namespace Vista.Dashboard
             Color.FromArgb(148, 163, 184), Color.FromArgb(185, 28, 28), Color.FromArgb(20, 48, 92), Color.FromArgb(156, 163, 175)
         };
 
-        private Label[] _valores = new Label[5];
+        private Label[] _valores;
+        private Chart chartDepartamentos, chartPlanilla, chartAsistencia, chartSalarios;
 
         public ucInicio()
         {
             InitializeComponent();
+            _valores = new[] { lblKpi0, lblKpi1, lblKpi2, lblKpi3, lblKpi4 };
+            // Los gráficos se crean en código dentro de las tarjetas dibujadas en el diseñador
+            chartDepartamentos = CrearGrafico("chartDepartamentos", "Empleados por departamento", SeriesChartType.Bar, pnlChartDepartamentos);
+            chartPlanilla = CrearGrafico("chartPlanilla", "Planilla por período (últimos 6)", SeriesChartType.Column, pnlChartPlanilla);
+            chartAsistencia = CrearGrafico("chartAsistencia", "Asistencia de los últimos 30 días", SeriesChartType.Doughnut, pnlChartAsistencia);
+            chartSalarios = CrearGrafico("chartSalarios", "Salario base mensual por departamento ($)", SeriesChartType.Column, pnlChartSalarios);
+            tip.SetToolTip(chartDepartamentos, "Cantidad de empleados activos en cada departamento.");
+            tip.SetToolTip(chartPlanilla, "Ingresos, deducciones y neto de las últimas planillas generadas.");
+            tip.SetToolTip(chartAsistencia, "Distribución de los tipos de asistencia registrados en los últimos 30 días.");
+            tip.SetToolTip(chartSalarios, "Suma de los salarios base de los empleados activos de cada departamento.");
             Load += ucInicio_Load;
         }
 
         
 
-        private Chart CrearGrafico(string nombre, string titulo, SeriesChartType tipo, TableLayoutPanel destino, int col, int fila)
+        private Chart CrearGrafico(string nombre, string titulo, SeriesChartType tipo, PanelTarjeta card)
         {
-            PanelTarjeta card = new PanelTarjeta { Dock = DockStyle.Fill, Margin = new Padding(col == 0 ? 0 : 6, fila == 0 ? 0 : 6, col == 1 ? 0 : 6, fila == 1 ? 0 : 6), Padding = new Padding(10), Name = "pnl" + nombre };
             Chart chart = new GraficoSeguro { Name = nombre, Dock = DockStyle.Fill, BackColor = Color.White };
             ChartArea area = new ChartArea("area") { BackColor = Color.White };
             area.AxisX.MajorGrid.Enabled = false;
@@ -48,7 +58,6 @@ namespace Vista.Dashboard
             chart.Legends.Add(new Legend("leyenda") { Docking = Docking.Bottom, Font = new Font("Segoe UI", 8.5F), BackColor = Color.Transparent });
             chart.Tag = tipo;
             card.Controls.Add(chart);
-            destino.Controls.Add(card, col, fila);
             return chart;
         }
 

@@ -21,6 +21,11 @@ namespace Vista.Configuracion
         public frmConfiguracion()
         {
             InitializeComponent();
+            GridUtil.Estilizar(dgvParametros);
+            GridUtil.Estilizar(dgvTramos);
+            bool puede = Sesion.Tiene(Permisos.ConfiguracionGestionar);
+            foreach (Control c in new Control[] { txtEmpresa, txtNit, txtNrc, txtDireccion, txtTelefono, txtCorreo, btnLogo, btnQuitarLogo, btnGuardarEmpresa, btnGuardarParametros })
+                c.Enabled = puede;
             Load += (s, e) => Cargar();
         }
 
@@ -150,6 +155,11 @@ namespace Vista.Configuracion
                 Mensajes.Exito("Los parámetros de ley se guardaron correctamente.");
             }
             catch (Exception ex) { Mensajes.Error("Configuración", ex, "guardar los parámetros"); }
+        }
+
+        private void btnQuitarLogo_Click(object sender, EventArgs e)
+        {
+            _logo = null; picLogo.Image = null;
         }
     }
 }

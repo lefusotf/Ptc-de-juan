@@ -152,5 +152,16 @@ namespace Vista.Seguridad
             }
             catch (Exception ex) { Mensajes.Error("Roles", ex, "guardar los permisos"); }
         }
+
+        private void btnNuevo_Click(object sender, EventArgs e)
+        {
+            NuevoRol();
+        }
+
+        private void btnMarcarTodos_Click(object sender, EventArgs e)
+        {
+            bool marcar = clbPermisos.CheckedItems.Count < clbPermisos.Items.Count;
+                            for (int i = 0; i < clbPermisos.Items.Count; i++) clbPermisos.SetItemChecked(i, marcar);
+        }
     }
 }

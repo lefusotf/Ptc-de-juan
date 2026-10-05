@@ -152,5 +152,10 @@ namespace Vista.ProcesoPlanilla
             if (Mensajes.Confirmar("El documento se guardó en:\n" + ruta + "\n\n¿Desea abrirlo ahora?"))
                 Process.Start(new ProcessStartInfo(ruta) { UseShellExecute = true });
         }
+
+        private void cmbEmpleado_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            MostrarVistaPrevia();
+        }
     }
 }

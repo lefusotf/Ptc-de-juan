@@ -37,6 +37,7 @@ namespace Vista.Reportes
         public frmReportes()
         {
             InitializeComponent();
+            GridUtil.Estilizar(dgv);
             Load += frmReportes_Load;
         }
 
@@ -188,6 +189,26 @@ namespace Vista.Reportes
                 ErrorSistemaException e = ex as ErrorSistemaException;
                 Mensajes.Error("Reportes", e ?? new ErrorSistemaException("ERR-SYS-003", ex.Message, ex), "generar el reporte");
             }
+        }
+
+        private void cmbReporte_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            AplicarFiltros();
+        }
+
+        private void btnPdf_Click(object sender, EventArgs e)
+        {
+            Exportar(true);
+        }
+
+        private void btnExcel_Click(object sender, EventArgs e)
+        {
+            Exportar(false);
+        }
+
+        private void paginador_PaginaCambiada(object sender, EventArgs e)
+        {
+            MostrarPagina();
         }
     }
 }
