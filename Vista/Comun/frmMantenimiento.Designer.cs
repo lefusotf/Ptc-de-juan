@@ -368,7 +368,7 @@ namespace Vista.Comun
         private BotonModerno btnUltima;
         private PanelTarjeta pnlFormulario;
         private System.Windows.Forms.Panel pnlCampos;
-        private System.Windows.Forms.TableLayoutPanel tlpCampos;
+        protected System.Windows.Forms.TableLayoutPanel tlpCampos;
         private System.Windows.Forms.FlowLayoutPanel flpAcciones;
         private BotonModerno btnNuevo;
         private BotonModerno btnGuardar;

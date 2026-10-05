@@ -143,6 +143,9 @@ namespace Vista.Comun
         {
             int columnas = _angosto ? 1 : Math.Max(1, Columnas);
             tlpCampos.SuspendLayout();
+            // Celdas dibujadas en el diseñador de Visual Studio (celNombreCampo): se reutilizan y solo se les asigna el comportamiento
+            Dictionary<string, Panel> previas = new Dictionary<string, Panel>();
+            foreach (Panel p in tlpCampos.Controls.OfType<Panel>()) previas[p.Name] = p;
             tlpCampos.Controls.Clear();
             tlpCampos.ColumnStyles.Clear();
             tlpCampos.RowStyles.Clear();
@@ -152,7 +155,7 @@ namespace Vista.Comun
             int col = 0, fila = 0;
             foreach (Campo c in Campos)
             {
-                Panel celda = CrearCelda(c);
+                Panel celda = CrearCelda(c, previas);
                 bool completo = c.Ancho || c.Tipo == TipoCampo.Multilinea || c.Tipo == TipoCampo.Nota;
                 if (completo && col != 0) { col = 0; fila++; }
                 tlpCampos.Controls.Add(celda, col, fila);
@@ -162,6 +165,7 @@ namespace Vista.Comun
             }
             tlpCampos.RowCount = fila + 1;
             for (int i = 0; i <= fila; i++) tlpCampos.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            foreach (Panel sobrante in previas.Values.Where(p => p.Parent == null)) sobrante.Dispose();
             tlpCampos.ResumeLayout(true);
 
             // Combos dependientes: al cambiar el padre se recargan las opciones del hijo
@@ -174,56 +178,100 @@ namespace Vista.Comun
             }
         }
 
-        private Panel CrearCelda(Campo c)
+        /// <summary>
+        /// Devuelve la celda (etiqueta + control) del campo. Si el formulario la dibujó en el diseñador (celX, lblX, txtX/cmbX/...),
+        /// se reutiliza tal cual (la apariencia es del diseñador) y solo se le asigna el comportamiento; si no existe, se crea.
+        /// </summary>
+        private Panel CrearCelda(Campo c, Dictionary<string, Panel> previas)
         {
-            Panel celda = new Panel { Dock = DockStyle.Top, Padding = new Padding(0, 0, 10, 8), Margin = new Padding(0) };
-            Label etiqueta = new Label
+            string sufijo = Mayuscula(c.Nombre);
+            Panel celda;
+            Label etiqueta = null;
+            Control existente = null;
+            if (previas.TryGetValue("cel" + sufijo, out celda))
             {
-                Text = c.Etiqueta + (c.Requerido ? " *" : ""),
-                Name = "lbl" + Mayuscula(c.Nombre),
-                Dock = DockStyle.Top,
-                Height = 20,
-                ForeColor = Tema.Texto,
-                Font = new Font("Segoe UI", 9F, FontStyle.Bold)
-            };
-            Control control = CrearControl(c);
-            control.Dock = DockStyle.Top;
+                etiqueta = celda.Controls.OfType<Label>().FirstOrDefault(l => l.Name == "lbl" + sufijo);
+                existente = celda.Controls.Cast<Control>().FirstOrDefault(x => x != etiqueta);
+            }
+            bool deDiseno = celda != null && existente != null;
+            if (!deDiseno) celda = new Panel { Name = "cel" + sufijo, Dock = DockStyle.Top, Padding = new Padding(0, 0, 10, 8), Margin = new Padding(0) };
+
+            if (etiqueta == null)
+            {
+                etiqueta = new Label
+                {
+                    Text = c.Etiqueta + (c.Requerido ? " *" : ""),
+                    Name = "lbl" + sufijo,
+                    Dock = DockStyle.Top,
+                    Height = 20,
+                    ForeColor = Tema.Texto,
+                    Font = new Font("Segoe UI", 9F, FontStyle.Bold)
+                };
+            }
+            else if (!deDiseno) etiqueta.Text = c.Etiqueta + (c.Requerido ? " *" : "");
+
+            Control control = CrearControl(c, deDiseno ? existente : null);
+            if (!deDiseno) control.Dock = DockStyle.Top;
+            else if (control != existente)
+            {
+                // el tipo del campo cambió respecto al control dibujado en el diseñador: se reemplaza por el correcto
+                celda.Controls.Remove(existente);
+                existente.Dispose();
+                control.Dock = DockStyle.Top;
+                if (c.Tipo != TipoCampo.Nota) celda.Controls.Remove(etiqueta);
+                celda.Controls.Add(control);
+                if (c.Tipo != TipoCampo.Nota) celda.Controls.Add(etiqueta);
+            }
             c.Control = control;
             c.EtiquetaControl = etiqueta;
-            celda.Controls.Add(control);
-            if (c.Tipo != TipoCampo.Nota) celda.Controls.Add(etiqueta);
+            if (!deDiseno)
+            {
+                celda.Controls.Add(control);
+                if (c.Tipo != TipoCampo.Nota) celda.Controls.Add(etiqueta);
+            }
             celda.Height = (c.Tipo == TipoCampo.Nota ? 0 : etiqueta.Height) + control.Height + celda.Padding.Bottom;
             control.Validating += (s, ev) => ValidarCampo(c);
             return celda;
         }
 
-        private Control CrearControl(Campo c)
+        /// <summary>Crea el control del campo (o reutiliza el del diseñador) y le asigna formato, límites, opciones y datos.</summary>
+        private Control CrearControl(Campo c, Control existente)
         {
             switch (c.Tipo)
             {
                 case TipoCampo.Nota:
-                    return new Label { Name = "lbl" + Mayuscula(c.Nombre) + "Nota", Height = 40, ForeColor = Tema.TextoSuave, Font = new Font("Segoe UI", 9F, FontStyle.Italic), Text = c.Predeterminado as string ?? "" };
+                    Label nota = existente as Label ?? new Label { Name = "lbl" + Mayuscula(c.Nombre) + "Nota", Height = 40, ForeColor = Tema.TextoSuave, Font = new Font("Segoe UI", 9F, FontStyle.Italic) };
+                    nota.Text = c.Predeterminado as string ?? "";
+                    return nota;
                 case TipoCampo.Combo:
-                    ComboBox cmb = new ComboBox { Name = "cmb" + Mayuscula(c.Nombre), DropDownStyle = ComboBoxStyle.DropDownList, Font = new Font("Segoe UI", 10F), FlatStyle = FlatStyle.Flat };
-                    if (c.Opciones != null) { cmb.Items.AddRange(c.Opciones); cmb.SelectedIndex = -1; }
+                    ComboBox cmb = existente as ComboBox ?? new ComboBox { Name = "cmb" + Mayuscula(c.Nombre), Font = new Font("Segoe UI", 10F), FlatStyle = FlatStyle.Flat };
+                    cmb.DropDownStyle = ComboBoxStyle.DropDownList;
+                    if (c.Opciones != null) { cmb.Items.Clear(); cmb.Items.AddRange(c.Opciones); cmb.SelectedIndex = -1; }
                     else if (c.Origen != null) CargarCombo(c, cmb, c.Origen());
                     return cmb;
                 case TipoCampo.Check:
-                    return new CheckBox { Name = "chk" + Mayuscula(c.Nombre), Text = "Sí", Height = 28, Font = new Font("Segoe UI", 10F), Checked = c.Predeterminado is bool && (bool)c.Predeterminado };
+                    CheckBox chk = existente as CheckBox ?? new CheckBox { Name = "chk" + Mayuscula(c.Nombre), Text = "Sí", Height = 28, Font = new Font("Segoe UI", 10F) };
+                    chk.Checked = c.Predeterminado is bool && (bool)c.Predeterminado;
+                    return chk;
                 case TipoCampo.Fecha:
                 case TipoCampo.FechaOpcional:
-                    DateTimePicker dtp = new DateTimePicker
-                    {
-                        Name = "dtp" + Mayuscula(c.Nombre), Format = DateTimePickerFormat.Custom, CustomFormat = "dd/MM/yyyy", Font = new Font("Segoe UI", 10F),
-                        ShowCheckBox = c.Tipo == TipoCampo.FechaOpcional
-                    };
+                    DateTimePicker dtp = existente as DateTimePicker ?? new DateTimePicker { Name = "dtp" + Mayuscula(c.Nombre), Font = new Font("Segoe UI", 10F) };
+                    dtp.Format = DateTimePickerFormat.Custom;
+                    dtp.CustomFormat = "dd/MM/yyyy";
+                    dtp.ShowCheckBox = c.Tipo == TipoCampo.FechaOpcional;
                     if (c.FechaMin.HasValue) dtp.MinDate = c.FechaMin.Value;
                     if (c.FechaMax.HasValue) dtp.MaxDate = c.FechaMax.Value;
                     return dtp;
                 case TipoCampo.Hora:
-                    return new DateTimePicker { Name = "dtp" + Mayuscula(c.Nombre), Format = DateTimePickerFormat.Custom, CustomFormat = "HH:mm", ShowUpDown = true, Font = new Font("Segoe UI", 10F) };
+                    DateTimePicker hora = existente as DateTimePicker ?? new DateTimePicker { Name = "dtp" + Mayuscula(c.Nombre), Font = new Font("Segoe UI", 10F) };
+                    hora.Format = DateTimePickerFormat.Custom;
+                    hora.CustomFormat = "HH:mm";
+                    hora.ShowUpDown = true;
+                    return hora;
                 default:
-                    CajaTexto t = new CajaTexto { Name = "txt" + Mayuscula(c.Nombre), MaxLength = c.Longitud };
+                    bool nuevo = !(existente is CajaTexto);
+                    CajaTexto t = existente as CajaTexto ?? new CajaTexto { Name = "txt" + Mayuscula(c.Nombre) };
+                    t.MaxLength = c.Longitud;
                     switch (c.Tipo)
                     {
                         case TipoCampo.Letras: t.Modo = ModoEntrada.Letras; break;
@@ -237,7 +285,10 @@ namespace Vista.Comun
                         case TipoCampo.Nit: t.Mascara = "####-######-###-#"; t.MaxLength = 17; break;
                         case TipoCampo.Telefono: t.Mascara = "####-####"; t.MaxLength = 9; break;
                         case TipoCampo.Contrasena: t.UseSystemPasswordChar = true; break;
-                        case TipoCampo.Multilinea: t.Multiline = true; t.Height = 64; t.ScrollBars = ScrollBars.Vertical; break;
+                        case TipoCampo.Multilinea:
+                            t.Multiline = true;
+                            if (nuevo) { t.Height = 64; t.ScrollBars = ScrollBars.Vertical; }
+                            break;
                     }
                     return t;
             }
