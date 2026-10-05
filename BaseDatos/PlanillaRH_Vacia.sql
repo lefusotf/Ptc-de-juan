@@ -1,5 +1,5 @@
 ﻿-- =====================================================================
--- SISTEMA DE PLANILLA Y RECURSOS HUMANOS  (PlanillaRH) - VERSIÓN DE PRUEBA
+-- SISTEMA DE PLANILLA Y RECURSOS HUMANOS  (PlanillaRH) - BASE DE DATOS LIMPIA PARA UNA EMPRESA NUEVA
 -- Script de base de datos para SQL Server 2016 o superior (Express / LocalDB)
 --
 -- Contenido:
@@ -10,7 +10,7 @@
 --                     vwResumenDepartamento, vwResumenPlanilla)
 --   4. Procedimientos almacenados (aprobar permiso, aplicar acción de personal, cerrar planilla)
 --   5. Triggers      (historial de salario, estado de préstamo, protección de planillas cerradas)
---   6. Datos iniciales y MÍNIMOS de prueba (3 departamentos, 6 empleados, 2 usuarios; el administrador se crea en la Configuración Inicial)
+--   6. Solo los datos indispensables (roles, permisos, parámetros de ley, tipos de asistencia); sin empleados ni usuarios
 --
 -- La aplicación puede ejecutar este mismo script desde el formulario "Conexión a SQL Server".
 -- Para reiniciar:  DROP DATABASE PlanillaRH;  y volver a ejecutar el script.
@@ -770,12 +770,11 @@ END
 GO
 
 -- =====================================================================
--- 6. DATOS INICIALES Y MÍNIMOS DE PRUEBA
--- Usuarios: rrhh / Rrhh123*  y  conta / Conta123*  (el administrador se crea en la Configuración Inicial)
+-- 6. DATOS INDISPENSABLES (la empresa y el primer administrador se registran en la Configuración Inicial)
 -- =====================================================================
 
 -- ---------------------------------------------------------------------
--- 6.1  Configuración y seguridad
+-- 6.1  Configuración, roles y permisos
 -- ---------------------------------------------------------------------
 INSERT INTO configuracion (idConfiguracion, nombreEmpresa, moneda, configurado) VALUES (1, 'Empresa sin configurar', 'USD', 0);
 
@@ -825,7 +824,7 @@ WHERE codigo IN ('DEPARTAMENTOS_VER','HORARIOS_VER','EMPLEADOS_VER','ASISTENCIA_
 GO
 
 -- ---------------------------------------------------------------------
--- 6.2  Parámetros de ley y retención de renta
+-- 6.2  Parámetros de ley y retención de renta (editables desde la aplicación)
 -- ---------------------------------------------------------------------
 INSERT INTO parametroLey (codigo, descripcion, valor) VALUES
 ('ISSS_EMPLEADO', 'ISSS - porcentaje que aporta el empleado', 0.0300),
@@ -847,7 +846,7 @@ INSERT INTO tramoRenta (nombre, desde, hasta, porcentaje, excesoSobre, cuotaFija
 ('Tramo IV', 2038.11, 99999999.99, 30, 2038.10, 288.57);
 
 -- ---------------------------------------------------------------------
--- 6.3  Catálogos: tipos de asistencia y de movimiento
+-- 6.3  Tipos de asistencia (los usan los procedimientos almacenados)
 -- ---------------------------------------------------------------------
 INSERT INTO tipoAsistencia (codigo, nombre, descripcion, descuentaDia, requiereHoras) VALUES
 ('PRE', 'Presente', 'Asistió y cumplió su jornada', 0, 1),
@@ -857,129 +856,4 @@ INSERT INTO tipoAsistencia (codigo, nombre, descripcion, descuentaDia, requiereH
 ('PSG', 'Permiso sin goce de sueldo', 'Permiso aprobado con descuento del día', 1, 0),
 ('INC', 'Incapacidad', 'Incapacidad médica comprobada', 0, 0),
 ('VAC', 'Vacaciones', 'Día de vacaciones aprobado', 0, 0);
-
-INSERT INTO tipoMovimiento (nombre, naturaleza, gravable) VALUES
-('Bono por desempeño', 'Ingreso', 1),
-('Viáticos', 'Ingreso', 0),
-('Anticipo de salario', 'Deducción', 1),
-('Descuento por uniforme', 'Deducción', 1);
 GO
-
--- ---------------------------------------------------------------------
--- 6.4  Organización
--- ---------------------------------------------------------------------
-INSERT INTO departamento (nombre, descripcion) VALUES
-('Administración', 'Dirección general y apoyo administrativo'),
-('Finanzas y Contabilidad', 'Contabilidad, tesorería y control financiero'),
-('Recursos Humanos', 'Gestión del talento, planilla y personal');
-
-INSERT INTO cargo (idDepartamento, nombre, salarioMinimo, salarioMaximo) VALUES
-(1, 'Gerente General', 2500.00, 4500.00),
-(1, 'Asistente Administrativo', 450.00, 900.00),
-(2, 'Contador General', 1100.00, 2200.00),
-(2, 'Auxiliar Contable', 500.00, 900.00),
-(3, 'Jefe de Recursos Humanos', 1200.00, 2200.00),
-(3, 'Analista de Planillas', 700.00, 1300.00);
-
-INSERT INTO horario (nombre, horaEntrada, horaSalida, minutosTolerancia, horasAlmuerzo) VALUES
-('Administrativo', '08:00', '17:00', 10, 1.00),
-('Medio tiempo', '08:00', '13:00', 10, 0.00);
-
-INSERT INTO planilla (nombre, descripcion) VALUES
-('Planilla Administrativa', 'Personal administrativo y de oficina'),
-('Planilla Operativa', 'Personal de producción, bodega y servicio');
-
--- ---------------------------------------------------------------------
--- 6.5  Personal: 6 empleados y 2 usuarios
--- ---------------------------------------------------------------------
-INSERT INTO empleado (nombres, apellidos, dui, nit, numeroIsss, numeroNup, sexo, fechaNacimiento, telefono, correo, direccion, idDepartamento, idCargo, idHorario, idPlanilla, fechaIngreso, salarioBase, estado) VALUES
-('Carlos Eduardo', 'Menjívar Rivas', '05870761-4', '1219-121775-625-3', '366113609', '779123746044', 'M', '1978-03-14', '2869-9953', 'carlos.menjivar@empresa.com.sv', 'Colonia Escalón, San Salvador', 1, 1, 1, 1, '2019-02-01', 3200.00, 'Activo'),
-('Ana Patricia', 'Hernández López', '03252646-4', '1469-298616-651-5', '266173260', '443619421573', 'F', '1990-07-22', '7697-9060', 'ana.hernandez@empresa.com.sv', 'Colonia Escalón, San Salvador', 1, 2, 1, 1, '2021-05-10', 620.00, 'Activo'),
-('Sofía Alejandra', 'Quintanilla Mejía', '04913980-4', '1270-262163-825-2', '265238756', '673770100602', 'F', '1985-06-27', '2544-6511', 'sofia.quintanilla@empresa.com.sv', 'Colonia Escalón, San Salvador', 2, 3, 1, 1, '2020-01-13', 1480.00, 'Activo'),
-('Daniel Ernesto', 'Flores Alvarado', '04848838-1', '1325-161165-695-1', '687716833', '136074104939', 'M', '1997-02-11', '2762-3840', 'daniel.flores@empresa.com.sv', 'Colonia Escalón, San Salvador', 2, 4, 1, 1, '2022-09-05', 610.00, 'Activo'),
-('Roberto Antonio', 'Chávez Martínez', '01708277-0', '0955-275257-164-2', '941210101', '437524425296', 'M', '1982-09-30', '7521-7396', 'roberto.chavez@empresa.com.sv', 'Colonia Escalón, San Salvador', 3, 5, 1, 1, '2019-08-01', 1650.00, 'Activo'),
-('María Fernanda', 'Portillo Gómez', '02246012-9', '1165-151562-386-0', '213960451', '156149968611', 'F', '1993-04-18', '6761-6790', 'maria.portillo@empresa.com.sv', 'Colonia Escalón, San Salvador', 3, 6, 1, 1, '2020-03-02', 980.00, 'Activo');
-GO
-
-INSERT INTO usuario (idEmpleado, nombreUsuario, nombreCompleto, contrasena, correo, idRol, preguntaSeguridad, respuestaSeguridad, estado) VALUES
-(5, 'rrhh', 'Roberto Antonio Chávez Martínez', '$2a$11$JmBeJIdePJ/tP418M9ny0.80LHQT9owQhqg9egsfe99S1s/lxMMZ2', 'roberto.chavez@empresa.com.sv', 2, '¿Cuál es su color favorito?', '$2a$11$bDbP22vJsZ3HkV3drabUuevYOalko4mGbjdBpY1dwgRrGekIg9Uv6', 'Activo'),
-(3, 'conta', 'Sofía Alejandra Quintanilla Mejía', '$2a$11$wydrRWNfeczPeEfV/1hT.e5UGUQiFWzXCnuyTP13GrZSRAarkwRRm', 'sofia.quintanilla@empresa.com.sv', 3, '¿En qué ciudad nació?', '$2a$11$W02rOZuxtUlTGZKlwEjRDOlMkCPhTb5JUb/wxKdX2m3w3qMC2AX0W', 'Activo');
-GO
-
--- ---------------------------------------------------------------------
--- 6.6  Asistencia de los últimos 14 días (lunes a viernes)
--- ---------------------------------------------------------------------
--- Asistencia de demostración: lunes a viernes desde hace dos meses hasta ayer
-DECLARE @dia DATE = DATEADD(DAY, -14, CAST(GETDATE() AS DATE));
-DECLARE @hasta DATE = DATEADD(DAY, -1, CAST(GETDATE() AS DATE));
-DECLARE @idPre INT = (SELECT idTipoAsistencia FROM tipoAsistencia WHERE codigo = 'PRE');
-DECLARE @idTar INT = (SELECT idTipoAsistencia FROM tipoAsistencia WHERE codigo = 'TAR');
-DECLARE @idAus INT = (SELECT idTipoAsistencia FROM tipoAsistencia WHERE codigo = 'AUS');
-
-WHILE @dia <= @hasta
-BEGIN
-    IF (DATEDIFF(DAY, '19000101', @dia) % 7) < 5      -- lunes a viernes
-    BEGIN
-        ;WITH base AS (
-            SELECT e.idEmpleado, h.horaEntrada, h.horaSalida, h.horasDiarias, h.minutosTolerancia,
-                   ABS(CHECKSUM(e.idEmpleado, @dia)) % 100 AS r
-            FROM empleado e INNER JOIN horario h ON h.idHorario = e.idHorario
-            WHERE e.fechaIngreso <= @dia
-        )
-        INSERT INTO asistencia (idEmpleado, fecha, idTipoAsistencia, horaEntrada, horaSalida, horasTrabajadas, minutosTarde, horasExtra)
-        SELECT idEmpleado, @dia,
-               CASE WHEN r BETWEEN 80 AND 89 THEN @idTar WHEN r BETWEEN 90 AND 92 THEN @idAus ELSE @idPre END,
-               CASE WHEN r BETWEEN 90 AND 92 THEN NULL
-                    WHEN r BETWEEN 80 AND 89 THEN DATEADD(MINUTE, minutosTolerancia + 5 + (r - 80) * 2, horaEntrada)
-                    ELSE horaEntrada END,
-               CASE WHEN r BETWEEN 90 AND 92 THEN NULL
-                    WHEN r BETWEEN 93 AND 95 THEN DATEADD(HOUR, 1, horaSalida)
-                    ELSE horaSalida END,
-               CASE WHEN r BETWEEN 90 AND 92 THEN 0
-                    WHEN r BETWEEN 93 AND 95 THEN horasDiarias + 1
-                    WHEN r BETWEEN 80 AND 89 THEN horasDiarias - CONVERT(DECIMAL(5,2), (minutosTolerancia + 5 + (r - 80) * 2) / 60.0)
-                    ELSE horasDiarias END,
-               CASE WHEN r BETWEEN 80 AND 89 THEN minutosTolerancia + 5 + (r - 80) * 2 ELSE 0 END,
-               CASE WHEN r BETWEEN 93 AND 95 THEN 1 ELSE 0 END
-        FROM base;
-    END
-    SET @dia = DATEADD(DAY, 1, @dia);
-END
-GO
-
--- ---------------------------------------------------------------------
--- 6.7  Permisos laborales (1 y 2 aprobados, 3 pendiente)
--- ---------------------------------------------------------------------
-INSERT INTO permisoLaboral (idEmpleado, tipo, fechaInicio, fechaFin, motivo) VALUES
-(2, 'Con goce', DATEADD(DAY, -5, CAST(GETDATE() AS DATE)), DATEADD(DAY, -5, CAST(GETDATE() AS DATE)), 'Trámite personal'),
-(4, 'Vacaciones', DATEADD(DAY, -10, CAST(GETDATE() AS DATE)), DATEADD(DAY, -8, CAST(GETDATE() AS DATE)), 'Vacaciones'),
-(6, 'Sin goce', DATEADD(DAY, 3, CAST(GETDATE() AS DATE)), DATEADD(DAY, 3, CAST(GETDATE() AS DATE)), 'Asunto personal');
-EXEC sp_AprobarPermisoLaboral @idPermisoLaboral = 1, @idUsuario = 1;
-EXEC sp_AprobarPermisoLaboral @idPermisoLaboral = 2, @idUsuario = 1;
-
--- ---------------------------------------------------------------------
--- 6.8  Acciones de personal
--- ---------------------------------------------------------------------
-INSERT INTO accionPersonal (idEmpleado, tipoAccion, fecha, descripcion, salarioNuevo, idDepartamentoNuevo, idCargoNuevo, fechaFin, estado, idUsuario) VALUES
-(2, 'Aumento salarial', CAST(GETDATE() AS DATE), 'Ajuste por costo de vida', 650.0, NULL, NULL, NULL, 'Pendiente', 1),
-(4, 'Amonestación', DATEADD(DAY, -20, CAST(GETDATE() AS DATE)), 'Llamado de atención verbal por tardanzas', NULL, NULL, NULL, NULL, 'Aplicada', 1),
-(6, 'Traslado', CAST(GETDATE() AS DATE), 'Traslado a Finanzas y Contabilidad', 700.0, 2, 4, NULL, 'Pendiente', 1);
-
--- ---------------------------------------------------------------------
--- 6.9  Planilla: movimientos y préstamos
--- ---------------------------------------------------------------------
-DECLARE @anioPrev SMALLINT = YEAR(DATEADD(MONTH, -1, GETDATE()));
-DECLARE @mesPrev TINYINT = MONTH(DATEADD(MONTH, -1, GETDATE()));
-INSERT INTO planillaMovimiento (idEmpleado, idTipoMovimiento, anio, mes, monto, descripcion, idUsuario) VALUES
-(2, 1, @anioPrev, @mesPrev, 75.00, 'Bono por desempeño', 1),
-(3, 2, @anioPrev, @mesPrev, 40.00, 'Viáticos por gestiones bancarias', 1),
-(4, 3, @anioPrev, @mesPrev, 100.00, 'Anticipo de salario', 1),
-(5, 1, @anioPrev, @mesPrev, 150.00, 'Bono por cumplimiento de metas', 1);
-
-INSERT INTO prestamo (idEmpleado, monto, cuotaMensual, saldo, fechaOtorgado, descripcion) VALUES
-(2, 600.00, 50.00, 400.00, DATEADD(MONTH, -3, CAST(GETDATE() AS DATE)), 'Préstamo personal'),
-(4, 400.00, 35.00, 210.00, DATEADD(MONTH, -4, CAST(GETDATE() AS DATE)), 'Préstamo personal');
-
-GO
-
-SELECT * FROM usuario;
