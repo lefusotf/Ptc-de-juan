@@ -49,8 +49,15 @@ namespace Modelos.Datos
                 throw new ErrorSistemaException("ERR-NEG-054", "El rango del cargo es de $" + min.ToString("N2") + " a $" + max.ToString("N2") + ".");
         }
 
+        private static void ValidarPlanilla(int idPlanilla)
+        {
+            object per = Conexion.Escalar("SELECT periodicidad FROM planilla WHERE idPlanilla = @p", Conexion.P("@p", idPlanilla));
+            if (per != null && per.ToString() == "Anual") throw new ErrorSistemaException("ERR-NEG-064");
+        }
+
         public static void Insertar(Empleado e)
         {
+            ValidarPlanilla(e.IdPlanilla);
             ValidarSalario(e.IdCargo, e.SalarioBase);
             Conexion.EjecutarNoQuery(
                 "INSERT INTO empleado (nombres, apellidos, dui, nit, numeroIsss, numeroNup, sexo, fechaNacimiento, telefono, correo, direccion, " +
@@ -61,6 +68,7 @@ namespace Modelos.Datos
 
         public static void Actualizar(Empleado e)
         {
+            ValidarPlanilla(e.IdPlanilla);
             ValidarSalario(e.IdCargo, e.SalarioBase);
             System.Data.SqlClient.SqlParameter[] p = Parametros(e);
             System.Array.Resize(ref p, p.Length + 1);

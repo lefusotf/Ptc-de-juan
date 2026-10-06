@@ -27,7 +27,7 @@ namespace Modelos.Reportes
             Reporte r = new Reporte
             {
                 Titulo = "Planilla mensual detallada",
-                Subtitulo = pm == null ? "" : pm["planilla"] + " - " + Meses[(byte)pm["mes"]] + " " + pm["anio"] + " (" + pm["estado"] + ")",
+                Subtitulo = pm == null ? "" : pm["planilla"] + " - " + Etiqueta(pm) + " (" + pm["estado"] + ")",
                 Datos = t, Horizontal = true
             };
             r.ColumnasTotal.AddRange(new[] { "salarioBase", "salarioDevengado", "montoHorasExtra", "otrosIngresos", "totalIngresos", "isss", "afp", "renta", "prestamos", "otrosDescuentos", "totalDeducciones", "salarioNeto" });
@@ -100,7 +100,7 @@ namespace Modelos.Reportes
             Reporte r = new Reporte
             {
                 Titulo = "Retenciones y aportes de ley (ISSS, AFP y renta)",
-                Subtitulo = pm == null ? "" : pm["planilla"] + " - " + Meses[(byte)pm["mes"]] + " " + pm["anio"],
+                Subtitulo = pm == null ? "" : pm["planilla"] + " - " + Etiqueta(pm),
                 Datos = t, Horizontal = true
             };
             r.ColumnasTotal.AddRange(new[] { "totalIngresos", "isss", "isssPatronal", "afp", "afpPatronal", "renta" });
@@ -118,9 +118,18 @@ namespace Modelos.Reportes
             return r;
         }
 
+        /// <summary>Período de la planilla: mes, quincena o aguinaldo.</summary>
+        private static string Etiqueta(DataRow pm)
+        {
+            string per = pm["periodicidad"].ToString();
+            if (per == "Anual") return "Aguinaldo " + pm["anio"];
+            string mes = Meses[(byte)pm["mes"]] + " " + pm["anio"];
+            return per == "Quincenal" ? ((byte)pm["quincena"] == 2 ? "2.ª quincena de " : "1.ª quincena de ") + mes : mes;
+        }
+
         private static DataRow PlanillaMensualInfo(int id)
         {
-            DataTable t = Conexion.Consultar("SELECT planilla, anio, mes, estado FROM vwPlanillaMensual WHERE idPlanillaMensual = @id", Conexion.P("@id", id));
+            DataTable t = Conexion.Consultar("SELECT planilla, periodicidad, anio, mes, quincena, estado FROM vwPlanillaMensual WHERE idPlanillaMensual = @id", Conexion.P("@id", id));
             return t.Rows.Count == 0 ? null : t.Rows[0];
         }
     }

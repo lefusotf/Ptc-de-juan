@@ -37,12 +37,14 @@ namespace Vista.ProcesoPlanilla
         {
             try
             {
-                cmbPlanilla.DataSource = PlanillaDatos.ListarActivas();
+                cmbPlanilla.DataSource = PlanillaDatos.ListarParaGenerar();
                 cmbPlanilla.DisplayMember = "nombre";
                 cmbPlanilla.ValueMember = "idPlanilla";
                 DateTime anterior = DateTime.Today.AddMonths(-1);
                 txtAnio.Text = anterior.Year.ToString();
                 cmbMes.SelectedIndex = anterior.Month - 1;
+                cmbQuincena.SelectedIndex = 1;
+                AplicarPeriodicidad();
                 btnGenerar.Enabled = _puedeGestionar;
                 CargarPlanillas(null);
                 ActualizarBotones();
@@ -60,7 +62,7 @@ namespace Vista.ProcesoPlanilla
                 pagPlanillas.Configurar(total);
                 dgvPlanillas.DataSource = t;
                 GridUtil.Configurar(dgvPlanillas);
-                GridUtil.Ocultar(dgvPlanillas, "anio", "mes");
+                GridUtil.Ocultar(dgvPlanillas, "anio", "mes", "quincena");
                 dgvPlanillas.ClearSelection();
                 if (seleccionar.HasValue)
                     foreach (DataGridViewRow f in dgvPlanillas.Rows)
@@ -105,7 +107,7 @@ namespace Vista.ProcesoPlanilla
                 pagDetalle.Configurar(total);
                 dgvDetalle.DataSource = t;
                 GridUtil.Configurar(dgvDetalle);
-                GridUtil.Ocultar(dgvDetalle, "planilla", "anio", "mes", "estadoPlanilla", "dui", "numeroIsss", "numeroNup", "cargo", "minutosTarde", "descuentoTardanza", "horasExtra", "isssPatronal", "afpPatronal");
+                GridUtil.Ocultar(dgvDetalle, "planilla", "periodicidad", "quincena", "anio", "mes", "estadoPlanilla", "dui", "numeroIsss", "numeroNup", "cargo", "minutosTarde", "descuentoTardanza", "horasExtra", "isssPatronal", "afpPatronal");
                 GridUtil.Encabezado(dgvDetalle, "isss", "ISSS");
                 GridUtil.Encabezado(dgvDetalle, "afp", "AFP");
                 GridUtil.Encabezado(dgvDetalle, "diasLaborados", "Días");
@@ -123,30 +125,63 @@ namespace Vista.ProcesoPlanilla
                                : "Elija la planilla y el período y presione Generar. Seleccione una planilla de la lista para ver su detalle.";
         }
 
+        private string PeriodicidadSeleccionada()
+        {
+            DataRowView fila = cmbPlanilla.SelectedItem as DataRowView;
+            return fila == null ? "Mensual" : fila["periodicidad"].ToString();
+        }
+
+        /// <summary>Muestra solo los datos del período que corresponden a la periodicidad de la planilla elegida.</summary>
+        private void AplicarPeriodicidad()
+        {
+            string per = PeriodicidadSeleccionada();
+            cmbMes.Enabled = per != "Anual";
+            cmbQuincena.Enabled = per == "Quincenal";
+            lblMes.Text = per == "Anual" ? "Mes (aguinaldo)" : "Mes";
+            if (per == "Anual") cmbMes.SelectedIndex = 11;
+            string ayuda = per == "Quincenal" ? "Quincenal: elija el mes y la quincena. Los bonos, descuentos y anticipos del mes se pagan en la segunda quincena; la cuota de préstamo se divide entre las dos."
+                         : per == "Anual" ? "Aguinaldo: incluye a todos los empleados y solo se genera del 1 de octubre al 20 de diciembre. No lleva ISSS ni AFP; la renta solo grava lo que pase de 2 salarios mínimos."
+                         : "Mensual: se paga el mes completo (30 días base) y se descuentan los días de ausencia.";
+            if (!_idPlanillaMensual.HasValue) lblInfo.Text = ayuda;
+        }
+
+        private void cmbPlanilla_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            AplicarPeriodicidad();
+        }
+
         private void btnGenerar_Click(object sender, EventArgs e)
         {
             if (cmbPlanilla.SelectedIndex < 0) { Mensajes.Invalido("Seleccione la planilla que desea generar.", cmbPlanilla); return; }
             if (Mensajes.Invalido(Validaciones.Requerido(txtAnio.Text, "Año"), txtAnio)) return;
             int anio;
             if (!int.TryParse(txtAnio.Text, NumberStyles.None, CultureInfo.InvariantCulture, out anio) || anio < 2000 || anio > 2100) { Mensajes.Invalido("El año debe estar entre 2000 y 2100.", txtAnio); return; }
+            string periodicidad = PeriodicidadSeleccionada();
             if (cmbMes.SelectedIndex < 0) { Mensajes.Invalido("Seleccione el mes del período.", cmbMes); return; }
-            int mes = cmbMes.SelectedIndex + 1;
+            int mes = periodicidad == "Anual" ? 12 : cmbMes.SelectedIndex + 1;
+            int quincena = 0;
+            if (periodicidad == "Quincenal")
+            {
+                if (cmbQuincena.SelectedIndex < 0) { Mensajes.Invalido("Seleccione la quincena (primera o segunda).", cmbQuincena); return; }
+                quincena = cmbQuincena.SelectedIndex + 1;
+            }
+            string etiquetaPeriodo = periodicidad == "Anual" ? "aguinaldo " + anio : (quincena > 0 ? (quincena == 1 ? "1.ª" : "2.ª") + " quincena de " : "") + Meses[mes - 1] + " " + anio;
 
             DateTime periodo = new DateTime(anio, mes, 1);
-            if (periodo > new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1))
+            if (periodicidad != "Anual" && periodo > new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1))
             {
                 Mensajes.Advertencia("[ERR-VAL-005] No se puede generar la planilla de un mes que aún no ha comenzado.");
                 return;
             }
 
             string nombre = ((DataRowView)cmbPlanilla.SelectedItem)["nombre"].ToString();
-            if (!Mensajes.Confirmar("Se calculará la planilla '" + nombre + "' de " + Meses[mes - 1] + " " + anio + ".\nSi ya existe en borrador, se reemplazará. ¿Desea continuar?")) return;
+            if (!Mensajes.Confirmar("Se calculará la planilla '" + nombre + "' (" + etiquetaPeriodo + ").\nSi ya existe en borrador, se reemplazará. ¿Desea continuar?")) return;
 
             try
             {
                 Cursor = Cursors.WaitCursor;
-                int id = PlanillaMensualDatos.Generar((int)cmbPlanilla.SelectedValue, anio, mes, Sesion.UsuarioActual.IdUsuario);
-                Logger.Info("Planilla mensual", "Planilla '" + nombre + "' " + Meses[mes - 1] + " " + anio + " generada (id " + id + ")");
+                int id = PlanillaMensualDatos.Generar((int)cmbPlanilla.SelectedValue, anio, mes, quincena, Sesion.UsuarioActual.IdUsuario);
+                Logger.Info("Planilla mensual", "Planilla '" + nombre + "' " + etiquetaPeriodo + " generada (id " + id + ")");
                 pagPlanillas.Reiniciar();
                 txtBuscarPlanilla.Clear();
                 CargarPlanillas(id);

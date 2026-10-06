@@ -117,7 +117,7 @@ CREATE TABLE planilla (
     descripcion VARCHAR(200) NULL,
     periodicidad VARCHAR(10) NOT NULL DEFAULT 'Mensual',
     estado VARCHAR(10) NOT NULL DEFAULT 'Activo',
-    CONSTRAINT ckPlanillaPeriodicidad CHECK (periodicidad IN ('Mensual')),
+    CONSTRAINT ckPlanillaPeriodicidad CHECK (periodicidad IN ('Mensual', 'Quincenal', 'Anual')),
     CONSTRAINT ckPlanillaEstado CHECK (estado IN ('Activo', 'Inactivo'))
 );
 GO
@@ -335,6 +335,7 @@ CREATE TABLE planillaMensual (
     idPlanilla INT NOT NULL,
     anio SMALLINT NOT NULL,
     mes TINYINT NOT NULL,
+    quincena TINYINT NOT NULL DEFAULT 0,          -- 0 = mes completo o aguinaldo; 1 = primera quincena (1-15); 2 = segunda quincena (16-fin)
     fechaGeneracion DATETIME NOT NULL DEFAULT GETDATE(),
     estado VARCHAR(10) NOT NULL DEFAULT 'Borrador',
     totalIngresos DECIMAL(12,2) NOT NULL DEFAULT 0,
@@ -344,7 +345,8 @@ CREATE TABLE planillaMensual (
     idUsuario INT NOT NULL,
     CONSTRAINT fkPlanillaMensualPlanilla FOREIGN KEY (idPlanilla) REFERENCES planilla(idPlanilla),
     CONSTRAINT fkPlanillaMensualUsuario FOREIGN KEY (idUsuario) REFERENCES usuario(idUsuario),
-    CONSTRAINT ukPlanillaMensualPeriodo UNIQUE (idPlanilla, anio, mes),
+    CONSTRAINT ukPlanillaMensualPeriodo UNIQUE (idPlanilla, anio, mes, quincena),
+    CONSTRAINT ckPlanillaMensualQuincena CHECK (quincena IN (0, 1, 2)),
     CONSTRAINT ckPlanillaMensualMes CHECK (mes BETWEEN 1 AND 12),
     CONSTRAINT ckPlanillaMensualEstado CHECK (estado IN ('Borrador', 'Cerrada'))
 );
@@ -480,8 +482,11 @@ INNER JOIN empleado e ON e.idEmpleado = p.idEmpleado;
 GO
 
 CREATE VIEW vwPlanillaMensual AS
-SELECT pm.idPlanillaMensual, pm.idPlanilla, p.nombre AS planilla, pm.anio, pm.mes,
-       CONVERT(VARCHAR(4), pm.anio) + '-' + RIGHT('0' + CONVERT(VARCHAR(2), pm.mes), 2) AS periodo,
+SELECT pm.idPlanillaMensual, pm.idPlanilla, p.nombre AS planilla, p.periodicidad, pm.anio, pm.mes, pm.quincena,
+       CASE p.periodicidad
+            WHEN 'Anual' THEN CONVERT(VARCHAR(4), pm.anio) + ' (anual)'
+            WHEN 'Quincenal' THEN CONVERT(VARCHAR(4), pm.anio) + '-' + RIGHT('0' + CONVERT(VARCHAR(2), pm.mes), 2) + ' Q' + CONVERT(VARCHAR(1), pm.quincena)
+            ELSE CONVERT(VARCHAR(4), pm.anio) + '-' + RIGHT('0' + CONVERT(VARCHAR(2), pm.mes), 2) END AS periodo,
        pm.fechaGeneracion, pm.estado, pm.totalIngresos, pm.totalDeducciones, pm.totalNeto, pm.totalPatronal,
        (SELECT COUNT(*) FROM planillaDetalle d WHERE d.idPlanillaMensual = pm.idPlanillaMensual) AS empleados,
        pm.idUsuario, u.nombreUsuario AS generadaPor
@@ -492,7 +497,7 @@ GO
 
 -- Detalle de planilla con los datos del empleado (fuente de la boleta de pago y de los reportes)
 CREATE VIEW vwPlanillaDetalle AS
-SELECT d.idPlanillaDetalle, d.idPlanillaMensual, pm.idPlanilla, pl.nombre AS planilla, pm.anio, pm.mes, pm.estado AS estadoPlanilla,
+SELECT d.idPlanillaDetalle, d.idPlanillaMensual, pm.idPlanilla, pl.nombre AS planilla, pl.periodicidad, pm.anio, pm.mes, pm.quincena, pm.estado AS estadoPlanilla,
        d.idEmpleado, e.codigo, e.nombres + ' ' + e.apellidos AS empleado, e.dui, e.numeroIsss, e.numeroNup,
        e.idDepartamento, dp.nombre AS departamento, c.nombre AS cargo,
        d.salarioBase, d.diasLaborados, d.diasAusencia, d.minutosTarde, d.descuentoTardanza, d.salarioDevengado,
@@ -674,7 +679,7 @@ BEGIN
 END
 GO
 
--- Cierra una planilla mensual: descuenta las cuotas de los préstamos y marca los movimientos como aplicados
+-- Cierra una planilla (mensual, quincenal o aguinaldo): descuenta las cuotas de los préstamos y marca los movimientos como aplicados
 CREATE PROCEDURE sp_CerrarPlanillaMensual
     @idPlanillaMensual INT
 AS
@@ -682,10 +687,11 @@ BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
 
-    DECLARE @estado VARCHAR(10), @anio SMALLINT, @mes TINYINT, @idPlanilla INT;
+    DECLARE @estado VARCHAR(10), @anio SMALLINT, @mes TINYINT, @quincena TINYINT, @idPlanilla INT, @periodicidad VARCHAR(10), @desde DATE;
 
-    SELECT @estado = estado, @anio = anio, @mes = mes, @idPlanilla = idPlanilla
-    FROM planillaMensual WHERE idPlanillaMensual = @idPlanillaMensual;
+    SELECT @estado = pm.estado, @anio = pm.anio, @mes = pm.mes, @quincena = pm.quincena, @idPlanilla = pm.idPlanilla, @periodicidad = p.periodicidad
+    FROM planillaMensual pm INNER JOIN planilla p ON p.idPlanilla = pm.idPlanilla
+    WHERE pm.idPlanillaMensual = @idPlanillaMensual;
 
     IF @estado IS NULL
         THROW 50030, 'ERR-NEG-030|La planilla mensual no existe.', 1;
@@ -694,20 +700,30 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM planillaDetalle WHERE idPlanillaMensual = @idPlanillaMensual)
         THROW 50032, 'ERR-NEG-032|La planilla no tiene empleados; genérela antes de cerrarla.', 1;
 
+    SET @desde = DATEFROMPARTS(@anio, @mes, CASE WHEN @quincena = 2 THEN 16 ELSE 1 END);
+
     BEGIN TRANSACTION;
 
-    -- Cada préstamo activo de un empleado de la planilla paga su cuota (o el saldo si es menor)
-    UPDATE p
-    SET saldo = CASE WHEN p.saldo > p.cuotaMensual THEN p.saldo - p.cuotaMensual ELSE 0 END
-    FROM prestamo p
-    INNER JOIN planillaDetalle d ON d.idEmpleado = p.idEmpleado AND d.idPlanillaMensual = @idPlanillaMensual
-    WHERE p.estado = 'Activo' AND d.prestamos > 0 AND p.fechaOtorgado < DATEFROMPARTS(@anio, @mes, 1) ;
+    -- Préstamos: cada préstamo activo paga su cuota (la mitad en una quincena, nada en el aguinaldo) o el saldo si es menor
+    IF @periodicidad <> 'Anual'
+    BEGIN
+        UPDATE p
+        SET saldo = CASE WHEN p.saldo > ROUND(p.cuotaMensual * CASE WHEN @periodicidad = 'Quincenal' THEN 0.5 ELSE 1 END, 2)
+                         THEN p.saldo - ROUND(p.cuotaMensual * CASE WHEN @periodicidad = 'Quincenal' THEN 0.5 ELSE 1 END, 2) ELSE 0 END
+        FROM prestamo p
+        INNER JOIN planillaDetalle d ON d.idEmpleado = p.idEmpleado AND d.idPlanillaMensual = @idPlanillaMensual
+        WHERE p.estado = 'Activo' AND d.prestamos > 0 AND p.fechaOtorgado < @desde;
+    END
 
-    UPDATE m
-    SET aplicado = 1
-    FROM planillaMovimiento m
-    INNER JOIN planillaDetalle d ON d.idEmpleado = m.idEmpleado AND d.idPlanillaMensual = @idPlanillaMensual
-    WHERE m.anio = @anio AND m.mes = @mes;
+    -- Movimientos del mes: se aplican en la planilla mensual o en la segunda quincena
+    IF @periodicidad = 'Mensual' OR (@periodicidad = 'Quincenal' AND @quincena = 2)
+    BEGIN
+        UPDATE m
+        SET aplicado = 1
+        FROM planillaMovimiento m
+        INNER JOIN planillaDetalle d ON d.idEmpleado = m.idEmpleado AND d.idPlanillaMensual = @idPlanillaMensual
+        WHERE m.anio = @anio AND m.mes = @mes;
+    END
 
     UPDATE planillaMensual SET estado = 'Cerrada' WHERE idPlanillaMensual = @idPlanillaMensual;
     COMMIT TRANSACTION;
@@ -844,6 +860,12 @@ INSERT INTO tramoRenta (nombre, desde, hasta, porcentaje, excesoSobre, cuotaFija
 ('Tramo II',  550.01,  895.24, 10, 550.00,  17.67),
 ('Tramo III', 895.25, 2038.10, 20, 895.24,  60.00),
 ('Tramo IV', 2038.11, 99999999.99, 30, 2038.10, 288.57);
+
+-- ---------------------------------------------------------------------
+-- 6.2b  Planilla de aguinaldo (anual; se genera del 1 de octubre al 20 de diciembre; incluye a todos los empleados)
+-- ---------------------------------------------------------------------
+INSERT INTO planilla (nombre, descripcion, periodicidad) VALUES
+('Planilla de Aguinaldo', 'Aguinaldo anual de todos los empleados (se genera del 1 de octubre al 20 de diciembre)', 'Anual');
 
 -- ---------------------------------------------------------------------
 -- 6.3  Tipos de asistencia (los usan los procedimientos almacenados)

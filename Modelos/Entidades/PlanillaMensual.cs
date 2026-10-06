@@ -9,6 +9,7 @@ namespace Modelos.Entidades
         public int IdPlanilla { get; set; }
         public int Anio { get; set; }
         public int Mes { get; set; }
+        public int Quincena { get; set; }   // 0 = mes completo o aguinaldo; 1 o 2 = quincena
         public string Estado { get; set; }
         public decimal TotalIngresos { get; set; }
         public decimal TotalDeducciones { get; set; }

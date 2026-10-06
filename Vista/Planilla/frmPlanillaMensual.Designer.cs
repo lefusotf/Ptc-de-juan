@@ -23,6 +23,8 @@
             this.lblAno = new System.Windows.Forms.Label();
             this.txtAnio = new Vista.Comun.CajaTexto();
             this.lblMes = new System.Windows.Forms.Label();
+            this.lblQuincena = new System.Windows.Forms.Label();
+            this.cmbQuincena = new System.Windows.Forms.ComboBox();
             this.cmbMes = new System.Windows.Forms.ComboBox();
             this.btnGenerar = new Vista.Comun.BotonModerno();
             this.btnCerrar = new Vista.Comun.BotonModerno();
@@ -76,6 +78,8 @@
             this.pnlGenerar.Controls.Add(this.txtAnio);
             this.pnlGenerar.Controls.Add(this.lblMes);
             this.pnlGenerar.Controls.Add(this.cmbMes);
+            this.pnlGenerar.Controls.Add(this.lblQuincena);
+            this.pnlGenerar.Controls.Add(this.cmbQuincena);
             this.pnlGenerar.Controls.Add(this.btnGenerar);
             this.pnlGenerar.Controls.Add(this.btnCerrar);
             this.pnlGenerar.Controls.Add(this.btnEliminar);
@@ -91,7 +95,7 @@
             this.lblPlanilla.Name = "lblPlanilla";
             this.lblPlanilla.Text = "Planilla";
             this.lblPlanilla.Location = new System.Drawing.Point(16, 14);
-            this.lblPlanilla.Size = new System.Drawing.Size(200, 20);
+            this.lblPlanilla.Size = new System.Drawing.Size(240, 20);
             this.lblPlanilla.BackColor = System.Drawing.Color.Transparent;
             this.lblPlanilla.ForeColor = System.Drawing.Color.FromArgb(31, 41, 51);
             this.lblPlanilla.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
@@ -100,18 +104,19 @@
             // 
             this.cmbPlanilla.Name = "cmbPlanilla";
             this.cmbPlanilla.Location = new System.Drawing.Point(16, 38);
-            this.cmbPlanilla.Size = new System.Drawing.Size(300, 27);
+            this.cmbPlanilla.Size = new System.Drawing.Size(240, 27);
             this.cmbPlanilla.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.cmbPlanilla.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.cmbPlanilla.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbPlanilla.ItemHeight = 21;
+            this.cmbPlanilla.SelectedIndexChanged += new System.EventHandler(this.cmbPlanilla_SelectedIndexChanged);
             // 
             // lblAno
             // 
             this.lblAno.Name = "lblAno";
             this.lblAno.Text = "Año";
-            this.lblAno.Location = new System.Drawing.Point(330, 14);
-            this.lblAno.Size = new System.Drawing.Size(200, 20);
+            this.lblAno.Location = new System.Drawing.Point(268, 14);
+            this.lblAno.Size = new System.Drawing.Size(70, 20);
             this.lblAno.BackColor = System.Drawing.Color.Transparent;
             this.lblAno.ForeColor = System.Drawing.Color.FromArgb(31, 41, 51);
             this.lblAno.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
@@ -120,8 +125,8 @@
             // txtAnio
             // 
             this.txtAnio.Name = "txtAnio";
-            this.txtAnio.Location = new System.Drawing.Point(330, 38);
-            this.txtAnio.Size = new System.Drawing.Size(80, 27);
+            this.txtAnio.Location = new System.Drawing.Point(268, 38);
+            this.txtAnio.Size = new System.Drawing.Size(70, 27);
             this.txtAnio.Font = new System.Drawing.Font("Segoe UI", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.txtAnio.TabIndex = 1;
             this.txtAnio.MaxLength = 4;
@@ -131,8 +136,8 @@
             // 
             this.lblMes.Name = "lblMes";
             this.lblMes.Text = "Mes";
-            this.lblMes.Location = new System.Drawing.Point(424, 14);
-            this.lblMes.Size = new System.Drawing.Size(200, 20);
+            this.lblMes.Location = new System.Drawing.Point(350, 14);
+            this.lblMes.Size = new System.Drawing.Size(120, 20);
             this.lblMes.BackColor = System.Drawing.Color.Transparent;
             this.lblMes.ForeColor = System.Drawing.Color.FromArgb(31, 41, 51);
             this.lblMes.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
@@ -142,20 +147,43 @@
             // 
             this.cmbMes.Items.AddRange(new object[] {"Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"});
             this.cmbMes.Name = "cmbMes";
-            this.cmbMes.Location = new System.Drawing.Point(424, 38);
-            this.cmbMes.Size = new System.Drawing.Size(150, 27);
+            this.cmbMes.Location = new System.Drawing.Point(350, 38);
+            this.cmbMes.Size = new System.Drawing.Size(130, 27);
             this.cmbMes.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.cmbMes.TabIndex = 2;
             this.cmbMes.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.cmbMes.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbMes.ItemHeight = 21;
             // 
+            // lblQuincena
+            // 
+            this.lblQuincena.Name = "lblQuincena";
+            this.lblQuincena.Text = "Quincena";
+            this.lblQuincena.Location = new System.Drawing.Point(492, 14);
+            this.lblQuincena.Size = new System.Drawing.Size(130, 20);
+            this.lblQuincena.BackColor = System.Drawing.Color.Transparent;
+            this.lblQuincena.ForeColor = System.Drawing.Color.FromArgb(31, 41, 51);
+            this.lblQuincena.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblQuincena.TabIndex = 6;
+            // 
+            // cmbQuincena
+            // 
+            this.cmbQuincena.Items.AddRange(new object[] {"Primera (1 al 15)", "Segunda (16 al fin)"});
+            this.cmbQuincena.Name = "cmbQuincena";
+            this.cmbQuincena.Location = new System.Drawing.Point(492, 38);
+            this.cmbQuincena.Size = new System.Drawing.Size(130, 27);
+            this.cmbQuincena.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.cmbQuincena.TabIndex = 7;
+            this.cmbQuincena.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.cmbQuincena.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbQuincena.ItemHeight = 21;
+            // 
             // btnGenerar
             // 
             this.btnGenerar.Name = "btnGenerar";
             this.btnGenerar.Text = "Generar / recalcular";
-            this.btnGenerar.Location = new System.Drawing.Point(590, 32);
-            this.btnGenerar.Size = new System.Drawing.Size(190, 40);
+            this.btnGenerar.Location = new System.Drawing.Point(636, 32);
+            this.btnGenerar.Size = new System.Drawing.Size(170, 40);
             this.btnGenerar.TabIndex = 3;
             this.btnGenerar.Click += new System.EventHandler(this.btnGenerar_Click);
             // 
@@ -163,8 +191,8 @@
             // 
             this.btnCerrar.Name = "btnCerrar";
             this.btnCerrar.Text = "Cerrar planilla";
-            this.btnCerrar.Location = new System.Drawing.Point(792, 32);
-            this.btnCerrar.Size = new System.Drawing.Size(150, 40);
+            this.btnCerrar.Location = new System.Drawing.Point(816, 32);
+            this.btnCerrar.Size = new System.Drawing.Size(130, 40);
             this.btnCerrar.BackColor = System.Drawing.Color.FromArgb(20, 48, 92);
             this.btnCerrar.TabIndex = 4;
             this.btnCerrar.Click += new System.EventHandler(this.btnCerrar_Click);
@@ -173,8 +201,8 @@
             // 
             this.btnEliminar.Name = "btnEliminar";
             this.btnEliminar.Text = "Eliminar borrador";
-            this.btnEliminar.Location = new System.Drawing.Point(954, 32);
-            this.btnEliminar.Size = new System.Drawing.Size(160, 40);
+            this.btnEliminar.Location = new System.Drawing.Point(956, 32);
+            this.btnEliminar.Size = new System.Drawing.Size(150, 40);
             this.btnEliminar.BackColor = System.Drawing.Color.FromArgb(185, 28, 28);
             this.btnEliminar.TabIndex = 5;
             this.btnEliminar.Click += new System.EventHandler(this.btnEliminar_Click);
@@ -392,6 +420,8 @@
 
         private System.Windows.Forms.ComboBox cmbPlanilla;
         private System.Windows.Forms.ComboBox cmbMes;
+        private System.Windows.Forms.Label lblQuincena;
+        private System.Windows.Forms.ComboBox cmbQuincena;
         private Vista.Comun.CajaTexto txtAnio;
         private Vista.Comun.CajaTexto txtBuscarPlanilla;
         private Vista.Comun.CajaTexto txtBuscarDetalle;

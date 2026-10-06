@@ -22,3 +22,13 @@ Cada campo es un control real dentro del diseñador de Visual Studio: una celda 
   de cada formulario. Si agrega un campo nuevo, agréguelo en `DefinirCampos()` y, si quiere dibujarlo, cree la celda
   con los nombres `celX`, `lblX` y `txtX/cmbX/dtpX/chkX` (si no existe, el sistema la crea sola al abrir la pantalla).
 * En el diseñador los campos se ven en una columna; al ejecutar se acomodan en una o dos columnas según el ancho.
+
+## Planillas: mensual, quincenal y aguinaldo
+
+Cada tipo de planilla (menú *Planilla*) tiene una **periodicidad**:
+
+* **Mensual:** se paga el mes completo (base de 30 días). Se pagan los *días efectivos*: los días del período menos los que descuentan (ausencia injustificada o permiso sin goce).
+* **Quincenal:** se genera por quincena (1.ª: del 1 al 15; 2.ª: del 16 al fin de mes). Base de 15 días, topes de ISSS y AFP a la mitad y tabla de renta quincenal (la mensual dividida entre 2). Los bonos, anticipos y descuentos del mes se pagan en la 2.ª quincena; la cuota de cada préstamo se divide entre las dos.
+* **Anual (aguinaldo):** incluye a todos los empleados activos y solo puede generarse del **1 de octubre al 20 de diciembre**. Días de salario según la antigüedad al 12 de diciembre (menos de 1 año: proporcional a 10 días; 1 a menos de 3 años: 10; 3 a menos de 10: 15; 10 o más: 18). No lleva ISSS ni AFP y la renta solo grava lo que pase de 2 salarios mínimos.
+
+La **boleta de pago** muestra los días del período, los días efectivos pagados, los ingresos extra (bonos, comisiones, viáticos), los anticipos y descuentos del período, los préstamos con su cuota y saldo, y la deuda total pendiente.

@@ -13,6 +13,8 @@ namespace Modelos.Negocio
         public DateTime? FechaRetiro { get; set; }
         public int Anio { get; set; }
         public int Mes { get; set; }
+        public string Periodicidad { get; set; } = "Mensual";   // Mensual, Quincenal o Anual (aguinaldo)
+        public int Quincena { get; set; }                         // 1 o 2 en las planillas quincenales; 0 en las demás
         public int DiasAusencia { get; set; }                // días que descuentan sueldo (según la asistencia)
         public int MinutosTarde { get; set; }
         public decimal HorasExtra { get; set; }
@@ -23,7 +25,7 @@ namespace Modelos.Negocio
     }
 
     /// <summary>
-    /// Motor de cálculo de la planilla mensual. Clase pura (sin acceso a datos): recibe los datos del empleado y
+    /// Motor de cálculo de la planilla (mensual, quincenal o aguinaldo). Clase pura (sin acceso a datos): recibe los datos del empleado y
     /// los parámetros de ley y devuelve el detalle con ingresos, deducciones de ley (ISSS, AFP, Renta), descuentos
     /// internos (préstamos) y salario neto.
     /// </summary>
@@ -34,20 +36,83 @@ namespace Modelos.Negocio
             return Math.Round(valor, 2, MidpointRounding.AwayFromZero);
         }
 
-        /// <summary>
-        /// Días a pagar en el mes (base comercial de 30 días): 30 si estuvo vinculado todo el mes; si ingresó o se
-        /// retiró dentro del mes se prorratean los días calendario vinculados.
-        /// </summary>
-        public static int DiasLaborados(DateTime ingreso, DateTime? retiro, int anio, int mes, int diasMes)
+        /// <summary>Rango de fechas y días base (30 al mes, 15 en una quincena) de un período de pago.</summary>
+        public static void Periodo(string periodicidad, int anio, int mes, int quincena, int diasMes, out DateTime inicio, out DateTime fin, out int diasBase)
         {
-            DateTime inicio = new DateTime(anio, mes, 1);
-            DateTime fin = inicio.AddMonths(1).AddDays(-1);
+            if (periodicidad == "Anual") { inicio = new DateTime(anio, 1, 1); fin = new DateTime(anio, 12, 31); diasBase = 365; return; }
+            DateTime primero = new DateTime(anio, mes, 1);
+            DateTime ultimo = primero.AddMonths(1).AddDays(-1);
+            if (periodicidad == "Quincenal")
+            {
+                inicio = quincena == 2 ? primero.AddDays(15) : primero;
+                fin = quincena == 2 ? ultimo : primero.AddDays(14);
+                diasBase = diasMes / 2;
+                return;
+            }
+            inicio = primero; fin = ultimo; diasBase = diasMes;
+        }
+
+        /// <summary>
+        /// Días a pagar en el período (base comercial: 30 días al mes, 15 en la quincena): todos si estuvo vinculado todo el
+        /// período; si ingresó o se retiró dentro del período se prorratean los días calendario vinculados.
+        /// </summary>
+        public static int DiasLaborados(DateTime ingreso, DateTime? retiro, DateTime inicio, DateTime fin, int diasBase)
+        {
             DateTime desde = ingreso.Date > inicio ? ingreso.Date : inicio;
             DateTime hasta = retiro.HasValue && retiro.Value.Date < fin ? retiro.Value.Date : fin;
             if (hasta < desde) return 0;
-            if (desde == inicio && hasta == fin) return diasMes;
+            if (desde == inicio && hasta == fin) return diasBase;
             int dias = (int)(hasta - desde).TotalDays + 1;
-            return Math.Min(dias, diasMes);
+            return Math.Min(dias, diasBase);
+        }
+
+        public static int DiasLaborados(DateTime ingreso, DateTime? retiro, int anio, int mes, int diasMes)
+        {
+            DateTime inicio, fin; int baseDias;
+            Periodo("Mensual", anio, mes, 0, diasMes, out inicio, out fin, out baseDias);
+            return DiasLaborados(ingreso, retiro, inicio, fin, baseDias);
+        }
+
+        /// <summary>Tabla de renta de la quincena: los tramos mensuales divididos entre dos.</summary>
+        public static List<TramoRenta> EscalarTramos(IEnumerable<TramoRenta> tramos, decimal factor)
+        {
+            List<TramoRenta> r = new List<TramoRenta>();
+            foreach (TramoRenta t in tramos)
+                r.Add(new TramoRenta { Desde = t.Desde * factor, Hasta = t.Hasta * factor, Porcentaje = t.Porcentaje, ExcesoSobre = t.ExcesoSobre * factor, CuotaFija = t.CuotaFija * factor });
+            return r;
+        }
+
+        /// <summary>
+        /// Días de salario del aguinaldo (Código de Trabajo, arts. 196-198), según la antigüedad al 12 de diciembre:
+        /// menos de 1 año: proporcional a 10 días; de 1 a menos de 3 años: 10 días; de 3 a menos de 10 años: 15 días; 10 años o más: 18 días.
+        /// </summary>
+        public static decimal DiasAguinaldo(DateTime ingreso, int anio)
+        {
+            DateTime corte = new DateTime(anio, 12, 12);
+            if (ingreso.Date > corte) return 0m;
+            int anios = corte.Year - ingreso.Year - (corte < ingreso.AddYears(corte.Year - ingreso.Year) ? 1 : 0);
+            if (anios >= 10) return 18m;
+            if (anios >= 3) return 15m;
+            if (anios >= 1) return 10m;
+            return Redondear(10m * (decimal)(corte - ingreso.Date).TotalDays / 365m);
+        }
+
+        /// <summary>
+        /// Aguinaldo: sin ISSS ni AFP; está exento de renta hasta 2 salarios mínimos y el exceso se grava con la tabla de renta.
+        /// </summary>
+        public static PlanillaDetalle CalcularAguinaldo(EntradaPlanilla e, ParametrosLey p)
+        {
+            decimal dias = DiasAguinaldo(e.FechaIngreso, e.Anio);
+            decimal bruto = Redondear(e.SalarioBase / p.DiasMes * dias);
+            decimal gravado = Math.Max(0m, bruto - 2m * p.SalarioMinimo);
+            decimal renta = CalcularRenta(gravado, p.Tramos);
+            return new PlanillaDetalle
+            {
+                IdEmpleado = e.IdEmpleado, SalarioBase = e.SalarioBase,
+                DiasLaborados = (int)Math.Round(dias, MidpointRounding.AwayFromZero), DiasAusencia = 0,
+                SalarioDevengado = bruto, TotalIngresos = bruto,
+                Renta = renta, TotalDeducciones = renta, SalarioNeto = bruto - renta
+            };
         }
 
         /// <summary>Retención de renta mensual según la tabla de tramos. baseRenta = ingresos gravables - ISSS - AFP.</summary>
@@ -68,8 +133,13 @@ namespace Modelos.Negocio
 
         public static PlanillaDetalle Calcular(EntradaPlanilla e, ParametrosLey p)
         {
+            if (e.Periodicidad == "Anual") return CalcularAguinaldo(e, p);
+
             int diasMes = (int)p.DiasMes;
-            int diasLaborados = DiasLaborados(e.FechaIngreso, e.FechaRetiro, e.Anio, e.Mes, diasMes);
+            decimal factor = e.Periodicidad == "Quincenal" ? 0.5m : 1m;
+            DateTime inicio, fin; int diasBase;
+            Periodo(e.Periodicidad, e.Anio, e.Mes, e.Quincena, diasMes, out inicio, out fin, out diasBase);
+            int diasLaborados = DiasLaborados(e.FechaIngreso, e.FechaRetiro, inicio, fin, diasBase);
             int diasAusencia = Math.Min(e.DiasAusencia, diasLaborados);
 
             decimal valorDia = e.SalarioBase / p.DiasMes;
@@ -85,9 +155,10 @@ namespace Modelos.Negocio
 
             // Base afecta a seguridad social: todo ingreso gravable (salario devengado, horas extra, bonos...)
             decimal baseCotizable = devengado + montoHorasExtra + e.IngresosGravables;
-            decimal isss = Redondear(Math.Min(baseCotizable, p.IsssTope) * p.IsssEmpleado);
-            decimal afp = Redondear(Math.Min(baseCotizable, p.AfpTope) * p.AfpEmpleado);
-            decimal renta = CalcularRenta(baseCotizable - isss - afp, p.Tramos);
+            decimal topeIsss = p.IsssTope * factor, topeAfp = p.AfpTope * factor;
+            decimal isss = Redondear(Math.Min(baseCotizable, topeIsss) * p.IsssEmpleado);
+            decimal afp = Redondear(Math.Min(baseCotizable, topeAfp) * p.AfpEmpleado);
+            decimal renta = CalcularRenta(baseCotizable - isss - afp, factor == 1m ? p.Tramos : EscalarTramos(p.Tramos, factor));
 
             decimal totalDeducciones = isss + afp + renta + e.CuotasPrestamos + e.OtrosDescuentos;
 
@@ -111,8 +182,8 @@ namespace Modelos.Negocio
                 OtrosDescuentos = e.OtrosDescuentos,
                 TotalDeducciones = totalDeducciones,
                 SalarioNeto = totalIngresos - totalDeducciones,
-                IsssPatronal = Redondear(Math.Min(baseCotizable, p.IsssTope) * p.IsssPatronal),
-                AfpPatronal = Redondear(Math.Min(baseCotizable, p.AfpTope) * p.AfpPatronal)
+                IsssPatronal = Redondear(Math.Min(baseCotizable, topeIsss) * p.IsssPatronal),
+                AfpPatronal = Redondear(Math.Min(baseCotizable, topeAfp) * p.AfpPatronal)
             };
         }
     }

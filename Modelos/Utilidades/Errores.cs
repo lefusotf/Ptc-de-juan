@@ -97,6 +97,9 @@ namespace Modelos.Utilidades
             { "ERR-NEG-059", "No se puede eliminar o inactivar un elemento que tiene empleados asignados." },
             { "ERR-NEG-060", "El rol Administrador no puede eliminarse ni perder el permiso de gestión de roles." },
             { "ERR-NEG-061", "No se puede eliminar al usuario que tiene la sesión abierta." },
+            { "ERR-NEG-062", "El aguinaldo solo puede generarse del 1 de octubre al 20 de diciembre de ese año." },
+            { "ERR-NEG-063", "Seleccione la quincena (primera o segunda) de la planilla quincenal." },
+            { "ERR-NEG-064", "La planilla anual (aguinaldo) incluye a todos los empleados y no se puede asignar a un empleado." },
             // ---- Configuración y sistema ----
             { "ERR-CFG-001", "No existe una configuración de conexión guardada. Configure la conexión a SQL Server." },
             { "ERR-CFG-002", "No se encontró el script de la base de datos dentro de la aplicación." },

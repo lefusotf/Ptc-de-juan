@@ -117,7 +117,7 @@ CREATE TABLE planilla (
     descripcion VARCHAR(200) NULL,
     periodicidad VARCHAR(10) NOT NULL DEFAULT 'Mensual',
     estado VARCHAR(10) NOT NULL DEFAULT 'Activo',
-    CONSTRAINT ckPlanillaPeriodicidad CHECK (periodicidad IN ('Mensual')),
+    CONSTRAINT ckPlanillaPeriodicidad CHECK (periodicidad IN ('Mensual', 'Quincenal', 'Anual')),
     CONSTRAINT ckPlanillaEstado CHECK (estado IN ('Activo', 'Inactivo'))
 );
 GO
@@ -335,6 +335,7 @@ CREATE TABLE planillaMensual (
     idPlanilla INT NOT NULL,
     anio SMALLINT NOT NULL,
     mes TINYINT NOT NULL,
+    quincena TINYINT NOT NULL DEFAULT 0,          -- 0 = mes completo o aguinaldo; 1 = primera quincena (1-15); 2 = segunda quincena (16-fin)
     fechaGeneracion DATETIME NOT NULL DEFAULT GETDATE(),
     estado VARCHAR(10) NOT NULL DEFAULT 'Borrador',
     totalIngresos DECIMAL(12,2) NOT NULL DEFAULT 0,
@@ -344,7 +345,8 @@ CREATE TABLE planillaMensual (
     idUsuario INT NOT NULL,
     CONSTRAINT fkPlanillaMensualPlanilla FOREIGN KEY (idPlanilla) REFERENCES planilla(idPlanilla),
     CONSTRAINT fkPlanillaMensualUsuario FOREIGN KEY (idUsuario) REFERENCES usuario(idUsuario),
-    CONSTRAINT ukPlanillaMensualPeriodo UNIQUE (idPlanilla, anio, mes),
+    CONSTRAINT ukPlanillaMensualPeriodo UNIQUE (idPlanilla, anio, mes, quincena),
+    CONSTRAINT ckPlanillaMensualQuincena CHECK (quincena IN (0, 1, 2)),
     CONSTRAINT ckPlanillaMensualMes CHECK (mes BETWEEN 1 AND 12),
     CONSTRAINT ckPlanillaMensualEstado CHECK (estado IN ('Borrador', 'Cerrada'))
 );
@@ -480,8 +482,11 @@ INNER JOIN empleado e ON e.idEmpleado = p.idEmpleado;
 GO
 
 CREATE VIEW vwPlanillaMensual AS
-SELECT pm.idPlanillaMensual, pm.idPlanilla, p.nombre AS planilla, pm.anio, pm.mes,
-       CONVERT(VARCHAR(4), pm.anio) + '-' + RIGHT('0' + CONVERT(VARCHAR(2), pm.mes), 2) AS periodo,
+SELECT pm.idPlanillaMensual, pm.idPlanilla, p.nombre AS planilla, p.periodicidad, pm.anio, pm.mes, pm.quincena,
+       CASE p.periodicidad
+            WHEN 'Anual' THEN CONVERT(VARCHAR(4), pm.anio) + ' (anual)'
+            WHEN 'Quincenal' THEN CONVERT(VARCHAR(4), pm.anio) + '-' + RIGHT('0' + CONVERT(VARCHAR(2), pm.mes), 2) + ' Q' + CONVERT(VARCHAR(1), pm.quincena)
+            ELSE CONVERT(VARCHAR(4), pm.anio) + '-' + RIGHT('0' + CONVERT(VARCHAR(2), pm.mes), 2) END AS periodo,
        pm.fechaGeneracion, pm.estado, pm.totalIngresos, pm.totalDeducciones, pm.totalNeto, pm.totalPatronal,
        (SELECT COUNT(*) FROM planillaDetalle d WHERE d.idPlanillaMensual = pm.idPlanillaMensual) AS empleados,
        pm.idUsuario, u.nombreUsuario AS generadaPor
@@ -492,7 +497,7 @@ GO
 
 -- Detalle de planilla con los datos del empleado (fuente de la boleta de pago y de los reportes)
 CREATE VIEW vwPlanillaDetalle AS
-SELECT d.idPlanillaDetalle, d.idPlanillaMensual, pm.idPlanilla, pl.nombre AS planilla, pm.anio, pm.mes, pm.estado AS estadoPlanilla,
+SELECT d.idPlanillaDetalle, d.idPlanillaMensual, pm.idPlanilla, pl.nombre AS planilla, pl.periodicidad, pm.anio, pm.mes, pm.quincena, pm.estado AS estadoPlanilla,
        d.idEmpleado, e.codigo, e.nombres + ' ' + e.apellidos AS empleado, e.dui, e.numeroIsss, e.numeroNup,
        e.idDepartamento, dp.nombre AS departamento, c.nombre AS cargo,
        d.salarioBase, d.diasLaborados, d.diasAusencia, d.minutosTarde, d.descuentoTardanza, d.salarioDevengado,
@@ -674,7 +679,7 @@ BEGIN
 END
 GO
 
--- Cierra una planilla mensual: descuenta las cuotas de los préstamos y marca los movimientos como aplicados
+-- Cierra una planilla (mensual, quincenal o aguinaldo): descuenta las cuotas de los préstamos y marca los movimientos como aplicados
 CREATE PROCEDURE sp_CerrarPlanillaMensual
     @idPlanillaMensual INT
 AS
@@ -682,10 +687,11 @@ BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
 
-    DECLARE @estado VARCHAR(10), @anio SMALLINT, @mes TINYINT, @idPlanilla INT;
+    DECLARE @estado VARCHAR(10), @anio SMALLINT, @mes TINYINT, @quincena TINYINT, @idPlanilla INT, @periodicidad VARCHAR(10), @desde DATE;
 
-    SELECT @estado = estado, @anio = anio, @mes = mes, @idPlanilla = idPlanilla
-    FROM planillaMensual WHERE idPlanillaMensual = @idPlanillaMensual;
+    SELECT @estado = pm.estado, @anio = pm.anio, @mes = pm.mes, @quincena = pm.quincena, @idPlanilla = pm.idPlanilla, @periodicidad = p.periodicidad
+    FROM planillaMensual pm INNER JOIN planilla p ON p.idPlanilla = pm.idPlanilla
+    WHERE pm.idPlanillaMensual = @idPlanillaMensual;
 
     IF @estado IS NULL
         THROW 50030, 'ERR-NEG-030|La planilla mensual no existe.', 1;
@@ -694,20 +700,30 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM planillaDetalle WHERE idPlanillaMensual = @idPlanillaMensual)
         THROW 50032, 'ERR-NEG-032|La planilla no tiene empleados; genérela antes de cerrarla.', 1;
 
+    SET @desde = DATEFROMPARTS(@anio, @mes, CASE WHEN @quincena = 2 THEN 16 ELSE 1 END);
+
     BEGIN TRANSACTION;
 
-    -- Cada préstamo activo de un empleado de la planilla paga su cuota (o el saldo si es menor)
-    UPDATE p
-    SET saldo = CASE WHEN p.saldo > p.cuotaMensual THEN p.saldo - p.cuotaMensual ELSE 0 END
-    FROM prestamo p
-    INNER JOIN planillaDetalle d ON d.idEmpleado = p.idEmpleado AND d.idPlanillaMensual = @idPlanillaMensual
-    WHERE p.estado = 'Activo' AND d.prestamos > 0 AND p.fechaOtorgado < DATEFROMPARTS(@anio, @mes, 1) ;
+    -- Préstamos: cada préstamo activo paga su cuota (la mitad en una quincena, nada en el aguinaldo) o el saldo si es menor
+    IF @periodicidad <> 'Anual'
+    BEGIN
+        UPDATE p
+        SET saldo = CASE WHEN p.saldo > ROUND(p.cuotaMensual * CASE WHEN @periodicidad = 'Quincenal' THEN 0.5 ELSE 1 END, 2)
+                         THEN p.saldo - ROUND(p.cuotaMensual * CASE WHEN @periodicidad = 'Quincenal' THEN 0.5 ELSE 1 END, 2) ELSE 0 END
+        FROM prestamo p
+        INNER JOIN planillaDetalle d ON d.idEmpleado = p.idEmpleado AND d.idPlanillaMensual = @idPlanillaMensual
+        WHERE p.estado = 'Activo' AND d.prestamos > 0 AND p.fechaOtorgado < @desde;
+    END
 
-    UPDATE m
-    SET aplicado = 1
-    FROM planillaMovimiento m
-    INNER JOIN planillaDetalle d ON d.idEmpleado = m.idEmpleado AND d.idPlanillaMensual = @idPlanillaMensual
-    WHERE m.anio = @anio AND m.mes = @mes;
+    -- Movimientos del mes: se aplican en la planilla mensual o en la segunda quincena
+    IF @periodicidad = 'Mensual' OR (@periodicidad = 'Quincenal' AND @quincena = 2)
+    BEGIN
+        UPDATE m
+        SET aplicado = 1
+        FROM planillaMovimiento m
+        INNER JOIN planillaDetalle d ON d.idEmpleado = m.idEmpleado AND d.idPlanillaMensual = @idPlanillaMensual
+        WHERE m.anio = @anio AND m.mes = @mes;
+    END
 
     UPDATE planillaMensual SET estado = 'Cerrada' WHERE idPlanillaMensual = @idPlanillaMensual;
     COMMIT TRANSACTION;
@@ -1001,22 +1017,13 @@ INSERT INTO horario (nombre, horaEntrada, horaSalida, minutosTolerancia, horasAl
 ('Seguridad vespertino', '14:00', '22:00', 10, 0.50),
 ('Turno nocturno', '19:00', '23:30', 10, 0.50);
 
-INSERT INTO planilla (nombre, descripcion) VALUES
-('Planilla Administrativa', 'Personal administrativo y de oficina'),
-('Planilla Comercial', 'Personal de ventas y mercadeo'),
-('Planilla de Bodega', 'Personal de bodega y despacho'),
-('Planilla de Calidad', 'Control y aseguramiento de calidad'),
-('Planilla de Capacitación', 'Instructores y formadores'),
-('Planilla de Compras', 'Personal de compras y proveedores'),
-('Planilla de Mantenimiento', 'Personal técnico de mantenimiento'),
-('Planilla de Pasantes', 'Practicantes y pasantes'),
-('Planilla de Proyectos', 'Personal asignado a proyectos'),
-('Planilla de Seguridad', 'Personal de seguridad y vigilancia'),
-('Planilla de Transporte', 'Motoristas y personal de transporte'),
-('Planilla Gerencial', 'Cargos de dirección y gerencia'),
-('Planilla Legal', 'Personal del área legal'),
-('Planilla Operativa', 'Personal de producción, bodega y servicio'),
-('Planilla Temporal', 'Personal contratado por período definido');
+INSERT INTO planilla (nombre, descripcion, periodicidad) VALUES
+('Planilla Administrativa', 'Personal administrativo y de oficina', 'Mensual'),
+('Planilla Comercial', 'Personal de ventas y mercadeo', 'Mensual'),
+('Planilla de Aguinaldo', 'Aguinaldo anual de todos los empleados (se genera del 1 de octubre al 20 de diciembre)', 'Anual'),
+('Planilla Gerencial', 'Cargos de dirección y gerencia', 'Mensual'),
+('Planilla Operativa', 'Personal de producción, bodega y servicio (pago quincenal)', 'Quincenal'),
+('Planilla Temporal', 'Personal contratado por período definido (pago quincenal)', 'Quincenal');
 
 -- ---------------------------------------------------------------------
 -- 6.5  Personal: empleados y usuarios
@@ -1028,14 +1035,14 @@ INSERT INTO empleado (nombres, apellidos, dui, nit, numeroIsss, numeroNup, sexo,
 ('Sofía Alejandra', 'Quintanilla Mejía', '04913980-4', '1270-262163-825-2', '265238756', '673770100602', 'F', '1985-06-27', '2544-6511', 'sofia.quintanilla@empresa.com.sv', 'Colonia Escalón, San Salvador', 6, 8, 5, 1, '2020-01-13', 1480.00, 'Activo'),
 ('Gabriela Isabel', 'Escobar Salazar', '01379472-3', '1427-242807-954-0', '585138951', '932657128915', 'F', '1989-10-03', '7293-8927', 'gabriela.escobar@empresa.com.sv', 'Colonia Escalón, San Salvador', 6, 9, 5, 1, '2021-02-15', 1250.00, 'Activo'),
 ('Daniel Ernesto', 'Flores Alvarado', '04848838-1', '1325-161165-695-1', '687716833', '136074104939', 'M', '1997-02-11', '2762-3840', 'daniel.flores@empresa.com.sv', 'Colonia Escalón, San Salvador', 6, 10, 5, 1, '2022-09-05', 610.00, 'Activo'),
-('Néstor Ariel', 'Villalta Ayala', '02556046-5', '1422-265173-109-8', '436672727', '745433881515', 'M', '1991-11-23', '2398-6154', 'nestor.villalta@empresa.com.sv', 'Colonia Escalón, San Salvador', 8, 12, 1, 14, '2021-08-02', 760.00, 'Activo'),
-('Julio César', 'Alas Recinos', '02353844-6', '0634-167141-065-0', '541997588', '954290082848', 'M', '1986-04-04', '6524-1252', 'julio.alas@empresa.com.sv', 'Colonia Escalón, San Salvador', 8, 13, 1, 14, '2020-11-09', 590.00, 'Activo'),
-('Wilfredo Antonio', 'Lara Bernal', '03352771-4', '1238-296934-582-3', '711855694', '719741018004', 'M', '1980-07-07', '6786-3172', 'wilfredo.lara@empresa.com.sv', 'Colonia Escalón, San Salvador', 10, 16, 3, 14, '2019-05-06', 1100.00, 'Activo'),
-('Rosa Elena', 'Campos Henríquez', '01851072-6', '0640-125278-978-6', '283905224', '852074696809', 'F', '1992-02-19', '2877-6836', 'rosa.campos@empresa.com.sv', 'Colonia Escalón, San Salvador', 10, 18, 3, 14, '2022-02-14', 520.00, 'Activo'),
+('Néstor Ariel', 'Villalta Ayala', '02556046-5', '1422-265173-109-8', '436672727', '745433881515', 'M', '1991-11-23', '2398-6154', 'nestor.villalta@empresa.com.sv', 'Colonia Escalón, San Salvador', 8, 12, 1, 5, '2021-08-02', 760.00, 'Activo'),
+('Julio César', 'Alas Recinos', '02353844-6', '0634-167141-065-0', '541997588', '954290082848', 'M', '1986-04-04', '6524-1252', 'julio.alas@empresa.com.sv', 'Colonia Escalón, San Salvador', 8, 13, 1, 5, '2020-11-09', 590.00, 'Activo'),
+('Wilfredo Antonio', 'Lara Bernal', '03352771-4', '1238-296934-582-3', '711855694', '719741018004', 'M', '1980-07-07', '6786-3172', 'wilfredo.lara@empresa.com.sv', 'Colonia Escalón, San Salvador', 10, 16, 3, 5, '2019-05-06', 1100.00, 'Activo'),
+('Rosa Elena', 'Campos Henríquez', '01851072-6', '0640-125278-978-6', '283905224', '852074696809', 'F', '1992-02-19', '2877-6836', 'rosa.campos@empresa.com.sv', 'Colonia Escalón, San Salvador', 10, 18, 3, 5, '2022-02-14', 520.00, 'Activo'),
 ('Roberto Antonio', 'Chávez Martínez', '01708277-0', '0955-275257-164-2', '941210101', '437524425296', 'M', '1982-09-30', '7521-7396', 'roberto.chavez@empresa.com.sv', 'Colonia Escalón, San Salvador', 11, 19, 5, 1, '2019-08-01', 1650.00, 'Activo'),
 ('María Fernanda', 'Portillo Gómez', '02246012-9', '1165-151562-386-0', '213960451', '156149968611', 'F', '1993-04-18', '6761-6790', 'maria.portillo@empresa.com.sv', 'Colonia Escalón, San Salvador', 11, 20, 5, 1, '2020-03-02', 980.00, 'Activo'),
 ('José Luis', 'Ramírez Aguilar', '01216344-0', '0152-233795-488-5', '833144986', '595225499138', 'M', '1996-12-09', '6224-9152', 'jose.ramirez@empresa.com.sv', 'Colonia Escalón, San Salvador', 11, 21, 5, 1, '2022-06-01', 640.00, 'Activo'),
-('Diana Marisol', 'Ventura Torres', '01480764-2', '0297-161662-024-4', '232092060', '852022445999', 'F', '2000-01-30', '7690-6739', 'diana.ventura@empresa.com.sv', 'Colonia Escalón, San Salvador', 13, 25, 12, 14, DATEADD(DAY, 9, DATEADD(MONTH, -1, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))), 500.00, 'Activo'),
+('Diana Marisol', 'Ventura Torres', '01480764-2', '0297-161662-024-4', '232092060', '852022445999', 'F', '2000-01-30', '7690-6739', 'diana.ventura@empresa.com.sv', 'Colonia Escalón, San Salvador', 13, 25, 12, 5, DATEADD(DAY, 9, DATEADD(MONTH, -1, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))), 500.00, 'Activo'),
 ('Fernando José', 'Mendoza Pineda', '04729431-5', '0345-238215-816-8', '955462995', '994529299931', 'M', '1987-12-01', '2968-4511', 'fernando.mendoza@empresa.com.sv', 'Colonia Escalón, San Salvador', 14, 26, 5, 1, '2020-07-01', 2100.00, 'Activo'),
 ('Valeria Nicole', 'Sandoval Cortez', '02940577-2', '0110-124410-900-7', '793292768', '548095837031', 'F', '1996-03-08', '7902-3989', 'valeria.sandoval@empresa.com.sv', 'Colonia Escalón, San Salvador', 14, 27, 5, 1, '2021-10-18', 1350.00, 'Activo'),
 ('Oscar Armando', 'Reyes Castillo', '01228042-0', '0820-141093-361-8', '837829360', '970041542062', 'M', '1994-09-16', '7321-2797', 'oscar.reyes@empresa.com.sv', 'Colonia Escalón, San Salvador', 14, 28, 5, 1, '2023-04-03', 720.00, 'Activo'),

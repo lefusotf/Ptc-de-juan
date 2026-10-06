@@ -22,7 +22,7 @@ namespace Vista.Mantenimientos
         {
             Campos.Add(new Campo("nombre", "Nombre de la planilla", TipoCampo.Alfanumerico, 80));
             Campos.Add(new Campo("descripcion", "Descripción", TipoCampo.Multilinea, 200, false));
-            Campos.Add(new Campo("periodicidad", "Periodicidad", TipoCampo.Combo, 10) { Opciones = new[] { "Mensual" }, Predeterminado = "Mensual" });
+            Campos.Add(new Campo("periodicidad", "Periodicidad", TipoCampo.Combo, 10) { Opciones = new[] { "Mensual", "Quincenal", "Anual" }, Predeterminado = "Mensual", Ayuda = "Mensual: un pago al mes. Quincenal: dos pagos (1-15 y 16-fin de mes). Anual: aguinaldo, incluye a todos los empleados y se genera del 1 de octubre al 20 de diciembre." });
             Campos.Add(new Campo("estado", "Estado", TipoCampo.Combo, 10) { Opciones = new[] { "Activo", "Inactivo" }, Predeterminado = "Activo" });
         }
 
