@@ -19,6 +19,8 @@ namespace Vista.Conexion
         public frmConexion()
         {
             InitializeComponent();
+            txtServidor.BloquearPortapapeles = false;   // el nombre del servidor suele copiarse desde SSMS
+            txtBaseDatos.BloquearPortapapeles = false;
             ConfiguracionConexion actual = ConfiguracionConexion.Actual;
             txtServidor.Text = actual.Servidor;
             txtBaseDatos.Text = actual.BaseDatos;
