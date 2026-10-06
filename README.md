@@ -32,3 +32,7 @@ Cada tipo de planilla (menú *Planilla*) tiene una **periodicidad**:
 * **Anual (aguinaldo):** incluye a todos los empleados activos y solo puede generarse del **1 de octubre al 20 de diciembre**. Días de salario según la antigüedad al 12 de diciembre (menos de 1 año: proporcional a 10 días; 1 a menos de 3 años: 10; 3 a menos de 10: 15; 10 o más: 18). No lleva ISSS ni AFP y la renta solo grava lo que pase de 2 salarios mínimos.
 
 La **boleta de pago** muestra los días del período, los días efectivos pagados, los ingresos extra (bonos, comisiones, viáticos), los anticipos y descuentos del período, los préstamos con su cuota y saldo, y la deuda total pendiente.
+
+## Crear la base de datos desde la aplicación
+
+Al presionar **Crear base de datos** en el formulario de conexión, el sistema crea la base **limpia** (script `PlanillaRH_Vacia.sql`: solo roles, permisos, parámetros de ley y tipos de asistencia; sin empleados). Para probar el sistema marque **Incluir datos de demostración** y se cargará `PlanillaRH.sql` (empleados, asistencia, préstamos y planillas de ejemplo).

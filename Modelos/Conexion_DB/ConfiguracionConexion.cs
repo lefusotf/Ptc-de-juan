@@ -169,9 +169,10 @@ namespace Modelos.Conexion_DB
 
         /// <summary>
         /// Crea la base de datos (si no existe) y ejecuta el script con tablas, vistas, procedimientos, triggers
-        /// y datos iniciales. progreso recibe mensajes para mostrar al usuario.
+        /// y los datos indispensables (roles, permisos, parámetros de ley, tipos de asistencia). Con conDatosDemostracion también carga
+        /// empleados, asistencia, planillas y demás datos de ejemplo. progreso recibe mensajes para mostrar al usuario.
         /// </summary>
-        public void CrearBaseDatos(Action<string> progreso)
+        public void CrearBaseDatos(Action<string> progreso, bool conDatosDemostracion = false)
         {
             if (!NombreBaseValido(BaseDatos)) throw new ErrorSistemaException("ERR-CFG-003");
             if (progreso == null) progreso = s => { };
@@ -192,7 +193,7 @@ namespace Modelos.Conexion_DB
                     }
                 }
 
-                List<string> lotes = LeerLotesScript();
+                List<string> lotes = LeerLotesScript(conDatosDemostracion);
                 using (SqlConnection cn = new SqlConnection(CadenaConexion()))
                 {
                     cn.Open();
@@ -217,10 +218,10 @@ namespace Modelos.Conexion_DB
         }
 
         /// <summary>Lee el script incrustado y lo separa por la instrucción GO. Omite CREATE DATABASE y USE (ya se resolvieron).</summary>
-        private static List<string> LeerLotesScript()
+        private static List<string> LeerLotesScript(bool conDatosDemostracion)
         {
             string script;
-            using (Stream s = Assembly.GetExecutingAssembly().GetManifestResourceStream("PlanillaRH.sql"))
+            using (Stream s = Assembly.GetExecutingAssembly().GetManifestResourceStream(conDatosDemostracion ? "PlanillaRH.sql" : "PlanillaRH_Vacia.sql"))
             {
                 if (s == null) throw new ErrorSistemaException("ERR-CFG-002");
                 using (StreamReader r = new StreamReader(s, Encoding.UTF8)) script = r.ReadToEnd();

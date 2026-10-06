@@ -117,7 +117,8 @@ namespace Vista.Conexion
 
                 lblEstado.ForeColor = Tema.TextoSuave;
                 lblEstado.Text = "Creando la base de datos...";
-                await Task.Run(() => cfg.CrearBaseDatos(Registrar));
+                bool demo = chkDemo.Checked;
+                await Task.Run(() => cfg.CrearBaseDatos(Registrar, demo));
                 lblEstado.ForeColor = Tema.Primario;
                 lblEstado.Text = "Base de datos creada correctamente.";
                 Mensajes.Exito("La base de datos se creó correctamente.\nPresione \"Guardar y continuar\" para abrir el sistema.");

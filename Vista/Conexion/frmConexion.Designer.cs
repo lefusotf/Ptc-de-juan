@@ -30,6 +30,7 @@
             this.txtBaseDatos = new Vista.Comun.CajaTexto();
             this.btnProbar = new Vista.Comun.BotonModerno();
             this.btnCrear = new Vista.Comun.BotonModerno();
+            this.chkDemo = new System.Windows.Forms.CheckBox();
             this.btnContinuar = new Vista.Comun.BotonModerno();
             this.lblEstado = new System.Windows.Forms.Label();
             this.txtRegistro = new System.Windows.Forms.TextBox();
@@ -158,6 +159,15 @@
             this.txtBaseDatos.MaxLength = 60;
             this.txtBaseDatos.Modo = Vista.Comun.ModoEntrada.Usuario;
             // 
+            // chkDemo
+            // 
+            this.chkDemo.Name = "chkDemo";
+            this.chkDemo.Text = "Incluir datos de demostración";
+            this.chkDemo.Location = new System.Drawing.Point(330, 292);
+            this.chkDemo.Size = new System.Drawing.Size(280, 26);
+            this.chkDemo.BackColor = System.Drawing.Color.White;
+            this.chkDemo.TabIndex = 7;
+            // 
             // btnProbar
             // 
             this.btnProbar.Name = "btnProbar";
@@ -218,6 +228,7 @@
             this.btnSalir.BackColor = System.Drawing.Color.FromArgb(91, 99, 112);
             this.btnSalir.TabIndex = 9;
             this.tip.SetToolTip(this.txtServidor, "Nombre del servidor o de la instancia de SQL Server.");
+            this.tip.SetToolTip(this.chkDemo, "Marque esta casilla solo para probar el sistema: carga empleados, asistencia, préstamos y planillas de ejemplo. Déjela sin marcar para una empresa real.");
             this.tip.SetToolTip(this.rbWindows, "Usa la cuenta de Windows actual para conectarse.");
             this.tip.SetToolTip(this.rbSql, "Usa un usuario y contraseña definidos en SQL Server.");
             this.tip.SetToolTip(this.txtUsuario, "Usuario de SQL Server (por ejemplo sa).");
@@ -245,6 +256,7 @@
             this.Controls.Add(this.txtBaseDatos);
             this.Controls.Add(this.btnProbar);
             this.Controls.Add(this.btnCrear);
+            this.Controls.Add(this.chkDemo);
             this.Controls.Add(this.btnContinuar);
             this.Controls.Add(this.lblEstado);
             this.Controls.Add(this.txtRegistro);
@@ -267,6 +279,7 @@
         private Vista.Comun.CajaTexto txtUsuario;
         private Vista.Comun.CajaTexto txtContrasena;
         private System.Windows.Forms.RadioButton rbWindows;
+        private System.Windows.Forms.CheckBox chkDemo;
         private System.Windows.Forms.RadioButton rbSql;
         private Vista.Comun.BotonModerno btnProbar;
         private Vista.Comun.BotonModerno btnCrear;
