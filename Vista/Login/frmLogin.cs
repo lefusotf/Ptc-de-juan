@@ -19,6 +19,7 @@ namespace Vista.Login
         public frmLogin()
         {
             InitializeComponent();
+            Text = "PlanillaRH - Iniciar sesión  [" + Modelos.Conexion_DB.ConfiguracionConexion.Actual.Servidor + " / " + Modelos.Conexion_DB.ConfiguracionConexion.Actual.BaseDatos + "]";
             AcceptButton = btnIngresar;
         }
 
