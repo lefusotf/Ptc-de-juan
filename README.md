@@ -35,4 +35,4 @@ La **boleta de pago** muestra los días del período, los días efectivos pagado
 
 ## Crear la base de datos desde la aplicación
 
-Al presionar **Crear base de datos** en el formulario de conexión, el sistema crea la base **limpia** (script `PlanillaRH_Vacia.sql`: solo roles, permisos, parámetros de ley y tipos de asistencia; sin empleados). Para probar el sistema marque **Incluir datos de demostración** y se cargará `PlanillaRH.sql` (empleados, asistencia, préstamos y planillas de ejemplo).
+Al presionar **Crear base de datos** en el formulario de conexión, el sistema crea la base **limpia** (script `PlanillaRH_Vacia.sql`: tablas, vistas, procedimientos y triggers, más roles, permisos, parámetros de ley, tipos de asistencia, horarios, planillas y tipos de movimiento; sin empleados ni departamentos). Para probar el sistema marque **Incluir datos de demostración** y se cargará `PlanillaRH.sql` (empleados, asistencia, préstamos y planillas de ejemplo).

@@ -1,22 +1,4 @@
 ﻿-- =====================================================================
--- SISTEMA DE PLANILLA Y RECURSOS HUMANOS  (PlanillaRH) - BASE DE DATOS LIMPIA PARA UNA EMPRESA NUEVA
--- Script de base de datos para SQL Server 2016 o superior (Express / LocalDB)
---
--- Contenido:
---   1. Creación de la base de datos
---   2. Tablas (seguridad, configuración, catálogos, personal, asistencia, planilla, auditoría)
---   3. Vistas        (vwEmpleado, vwCargo, vwUsuario, vwAsistencia, vwPermisoLaboral, vwAccionPersonal,
---                     vwPlanillaMovimiento, vwPrestamo, vwPlanillaMensual, vwPlanillaDetalle,
---                     vwResumenDepartamento, vwResumenPlanilla)
---   4. Procedimientos almacenados (aprobar permiso, aplicar acción de personal, cerrar planilla)
---   5. Triggers      (historial de salario, estado de préstamo, protección de planillas cerradas)
---   6. Solo los datos indispensables (roles, permisos, parámetros de ley, tipos de asistencia); sin empleados ni usuarios
---
--- La aplicación puede ejecutar este mismo script desde el formulario "Conexión a SQL Server".
--- Para reiniciar:  DROP DATABASE PlanillaRH;  y volver a ejecutar el script.
--- =====================================================================
-
--- =====================================================================
 -- 1. CREACIÓN DE LA BASE DE DATOS
 -- =====================================================================
 IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'PlanillaRH')
@@ -27,6 +9,7 @@ GO
 
 USE PlanillaRH;
 GO
+
 
 -- =====================================================================
 -- 2. TABLAS
@@ -117,7 +100,7 @@ CREATE TABLE planilla (
     descripcion VARCHAR(200) NULL,
     periodicidad VARCHAR(10) NOT NULL DEFAULT 'Mensual',
     estado VARCHAR(10) NOT NULL DEFAULT 'Activo',
-    CONSTRAINT ckPlanillaPeriodicidad CHECK (periodicidad IN ('Mensual', 'Quincenal', 'Anual')),
+    CONSTRAINT ckPlanillaPeriodicidad CHECK (periodicidad IN ('Mensual', 'Quincenal')),
     CONSTRAINT ckPlanillaEstado CHECK (estado IN ('Activo', 'Inactivo'))
 );
 GO
@@ -335,7 +318,7 @@ CREATE TABLE planillaMensual (
     idPlanilla INT NOT NULL,
     anio SMALLINT NOT NULL,
     mes TINYINT NOT NULL,
-    quincena TINYINT NOT NULL DEFAULT 0,          -- 0 = mes completo o aguinaldo; 1 = primera quincena (1-15); 2 = segunda quincena (16-fin)
+    quincena TINYINT NOT NULL DEFAULT 0,          -- 0 = mes completo; 1 = primera quincena (1 al 15); 2 = segunda quincena (16 al fin de mes)
     fechaGeneracion DATETIME NOT NULL DEFAULT GETDATE(),
     estado VARCHAR(10) NOT NULL DEFAULT 'Borrador',
     totalIngresos DECIMAL(12,2) NOT NULL DEFAULT 0,
@@ -484,7 +467,6 @@ GO
 CREATE VIEW vwPlanillaMensual AS
 SELECT pm.idPlanillaMensual, pm.idPlanilla, p.nombre AS planilla, p.periodicidad, pm.anio, pm.mes, pm.quincena,
        CASE p.periodicidad
-            WHEN 'Anual' THEN CONVERT(VARCHAR(4), pm.anio) + ' (anual)'
             WHEN 'Quincenal' THEN CONVERT(VARCHAR(4), pm.anio) + '-' + RIGHT('0' + CONVERT(VARCHAR(2), pm.mes), 2) + ' Q' + CONVERT(VARCHAR(1), pm.quincena)
             ELSE CONVERT(VARCHAR(4), pm.anio) + '-' + RIGHT('0' + CONVERT(VARCHAR(2), pm.mes), 2) END AS periodo,
        pm.fechaGeneracion, pm.estado, pm.totalIngresos, pm.totalDeducciones, pm.totalNeto, pm.totalPatronal,
@@ -679,7 +661,7 @@ BEGIN
 END
 GO
 
--- Cierra una planilla (mensual, quincenal o aguinaldo): descuenta las cuotas de los préstamos y marca los movimientos como aplicados
+-- Cierra una planilla (mensual o quincenal): descuenta las cuotas de los préstamos y marca los movimientos como aplicados
 CREATE PROCEDURE sp_CerrarPlanillaMensual
     @idPlanillaMensual INT
 AS
@@ -704,19 +686,16 @@ BEGIN
 
     BEGIN TRANSACTION;
 
-    -- Préstamos: cada préstamo activo paga su cuota (la mitad en una quincena, nada en el aguinaldo) o el saldo si es menor
-    IF @periodicidad <> 'Anual'
-    BEGIN
-        UPDATE p
-        SET saldo = CASE WHEN p.saldo > ROUND(p.cuotaMensual * CASE WHEN @periodicidad = 'Quincenal' THEN 0.5 ELSE 1 END, 2)
-                         THEN p.saldo - ROUND(p.cuotaMensual * CASE WHEN @periodicidad = 'Quincenal' THEN 0.5 ELSE 1 END, 2) ELSE 0 END
-        FROM prestamo p
-        INNER JOIN planillaDetalle d ON d.idEmpleado = p.idEmpleado AND d.idPlanillaMensual = @idPlanillaMensual
-        WHERE p.estado = 'Activo' AND d.prestamos > 0 AND p.fechaOtorgado < @desde;
-    END
+    -- Cada préstamo activo paga su cuota (la mitad en una quincena) o el saldo si es menor
+    UPDATE p
+    SET saldo = CASE WHEN p.saldo > ROUND(p.cuotaMensual * CASE WHEN @periodicidad = 'Quincenal' THEN 0.5 ELSE 1 END, 2)
+                     THEN p.saldo - ROUND(p.cuotaMensual * CASE WHEN @periodicidad = 'Quincenal' THEN 0.5 ELSE 1 END, 2) ELSE 0 END
+    FROM prestamo p
+    INNER JOIN planillaDetalle d ON d.idEmpleado = p.idEmpleado AND d.idPlanillaMensual = @idPlanillaMensual
+    WHERE p.estado = 'Activo' AND d.prestamos > 0 AND p.fechaOtorgado < @desde;
 
     -- Movimientos del mes: se aplican en la planilla mensual o en la segunda quincena
-    IF @periodicidad = 'Mensual' OR (@periodicidad = 'Quincenal' AND @quincena = 2)
+    IF @periodicidad = 'Mensual' OR @quincena = 2
     BEGIN
         UPDATE m
         SET aplicado = 1
@@ -862,12 +841,6 @@ INSERT INTO tramoRenta (nombre, desde, hasta, porcentaje, excesoSobre, cuotaFija
 ('Tramo IV', 2038.11, 99999999.99, 30, 2038.10, 288.57);
 
 -- ---------------------------------------------------------------------
--- 6.2b  Planilla de aguinaldo (anual; se genera del 1 de octubre al 20 de diciembre; incluye a todos los empleados)
--- ---------------------------------------------------------------------
-INSERT INTO planilla (nombre, descripcion, periodicidad) VALUES
-('Planilla de Aguinaldo', 'Aguinaldo anual de todos los empleados (se genera del 1 de octubre al 20 de diciembre)', 'Anual');
-
--- ---------------------------------------------------------------------
 -- 6.3  Tipos de asistencia (los usan los procedimientos almacenados)
 -- ---------------------------------------------------------------------
 INSERT INTO tipoAsistencia (codigo, nombre, descripcion, descuentaDia, requiereHoras) VALUES
@@ -879,3 +852,43 @@ INSERT INTO tipoAsistencia (codigo, nombre, descripcion, descuentaDia, requiereH
 ('INC', 'Incapacidad', 'Incapacidad médica comprobada', 0, 0),
 ('VAC', 'Vacaciones', 'Día de vacaciones aprobado', 0, 0);
 GO
+
+SELECT * FROM  departamento;
+SELECT * FROM cargo;
+
+INSERT INTO horario (nombre, horaEntrada, horaSalida, minutosTolerancia, horasAlmuerzo) VALUES
+('Turno nocturno', '19:00', '23:30', 10, 0.50),
+('Fin de semana', '08:00', '14:00', 10, 0.00),
+('Seguridad matutino', '06:00', '14:00', 10, 0.50),
+('Seguridad vespertino', '14:00', '22:00', 10, 0.50),
+('Atención al cliente', '09:00', '18:00', 10, 1.00),
+('Taller', '07:30', '16:30', 10, 1.00),
+('Corrido sin almuerzo', '08:00', '16:00', 10, 0.00),
+('Medio tiempo tarde', '13:00', '18:00', 10, 0.00),
+('Flexible administrativo', '09:00', '18:00', 15, 1.00);
+INSERT INTO planilla (nombre, descripcion) VALUES
+('Planilla Gerencial', 'Cargos de dirección y gerencia'),
+('Planilla de Seguridad', 'Personal de seguridad y vigilancia'),
+('Planilla de Mantenimiento', 'Personal técnico de mantenimiento'),
+('Planilla de Calidad', 'Control y aseguramiento de calidad'),
+('Planilla Temporal', 'Personal contratado por período definido'),
+('Planilla de Pasantes', 'Practicantes y pasantes'),
+('Planilla de Proyectos', 'Personal asignado a proyectos'),
+('Planilla de Bodega', 'Personal de bodega y despacho'),
+('Planilla de Transporte', 'Motoristas y personal de transporte'),
+('Planilla de Capacitación', 'Instructores y formadores'),
+('Planilla de Compras', 'Personal de compras y proveedores'),
+('Planilla Legal', 'Personal del área legal');
+
+INSERT INTO tipoMovimiento (nombre, naturaleza, gravable) VALUES
+('Bono por desempeño', 'Ingreso', 1),
+('Comisión por ventas', 'Ingreso', 1),
+('Bonificación extraordinaria', 'Ingreso', 1),
+('Viáticos', 'Ingreso', 0),
+('Descuento por uniforme', 'Deducción', 1),
+('Anticipo de salario', 'Deducción', 1),
+('Cuota sindical', 'Deducción', 1),
+('Seguro médico privado', 'Deducción', 1),
+('Embargo judicial', 'Deducción', 1);
+GO
+
