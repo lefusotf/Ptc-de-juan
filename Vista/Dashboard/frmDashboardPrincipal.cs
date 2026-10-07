@@ -240,20 +240,40 @@ namespace Vista.Dashboard
             AbrirManual();
         }
 
-        /// <summary>Abre el manual de usuario integrado (ManualUsuario.html, instalado junto al ejecutable).</summary>
+        /// <summary>Abre el manual de usuario (PDF o HTML) instalado junto al ejecutable, en Ayuda\ o en la carpeta del programa.</summary>
         private void AbrirManual()
         {
             try
             {
-                string ruta = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Ayuda", "ManualUsuario.html");
-                if (!File.Exists(ruta)) ruta = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ManualUsuario.html");
-                if (!File.Exists(ruta)) throw new FileNotFoundException("No se encontró el archivo del manual de usuario.", ruta);
+                string ruta = BuscarManual();
+                if (ruta == null) throw new FileNotFoundException("No se encontró el archivo del manual de usuario.");
                 Process.Start(new ProcessStartInfo(ruta) { UseShellExecute = true });
             }
             catch (Exception ex)
             {
                 Mensajes.Error("Ayuda", new ErrorSistemaException("ERR-SYS-002", ex.Message, ex), "abrir el manual de usuario");
             }
+        }
+
+        private static string BuscarManual()
+        {
+            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            string[] carpetas = { Path.Combine(baseDir, "Ayuda"), baseDir };
+            foreach (string carpeta in carpetas)
+            {
+                if (!Directory.Exists(carpeta)) continue;
+                foreach (string nombre in new[] { "ManualUsuario.pdf", "ManualUsuario.html" })
+                {
+                    string ruta = Path.Combine(carpeta, nombre);
+                    if (File.Exists(ruta)) return ruta;
+                }
+                foreach (string patron in new[] { "*.pdf", "Manual*.html" })
+                {
+                    string[] hallados = Directory.GetFiles(carpeta, patron);
+                    if (hallados.Length > 0) return hallados[0];
+                }
+            }
+            return null;
         }
 
         private void btnSalir_Click(object sender, EventArgs e)
